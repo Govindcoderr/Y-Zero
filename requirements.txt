@@ -1,0 +1,16 @@
+python-dotenv
+openai
+langchain-core
+langchain
+langchain-community
+langchain-groq
+streamlit
+requests
+groq
+langgraph
+pydantic
+anthropic
+asyncio
+fastapi
+uvicorn
+

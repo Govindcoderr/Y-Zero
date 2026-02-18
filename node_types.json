@@ -1,0 +1,100 @@
+
+[
+  {
+    "name": "workflow.scheduleTrigger",
+    "displayName": "Schedule Trigger",
+    "description": "Trigger workflow on a schedule using cron expressions",
+    "version": 1,
+    "group": ["trigger"],
+    "inputs": [],
+    "outputs": ["main"],
+    "properties": [
+      {
+        "name": "rule",
+        "displayName": "Rule",
+        "type": "string",
+        "default": "0 * * * *",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "workflow.httpRequest",
+    "displayName": "HTTP Request",
+    "description": "Make HTTP requests to APIs and webhooks",
+    "version": 1,
+    "group": ["transform"],
+    "inputs": ["main"],
+    "outputs": ["main"],
+    "properties": [
+      {
+        "name": "url",
+        "displayName": "URL",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "method",
+        "displayName": "Method",
+        "type": "options",
+        "options": ["GET", "POST", "PUT", "DELETE"],
+        "default": "GET"
+      }
+    ]
+  },
+  {
+    "name": "workflow.emailSend",
+    "displayName": "Send Email",
+    "description": "Send emails via SMTP",
+    "version": 1,
+    "group": ["output"],
+    "inputs": ["main"],
+    "outputs": ["main"],
+    "properties": [
+      {
+        "name": "toEmail",
+        "displayName": "To Email",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "subject",
+        "displayName": "Subject",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "text",
+        "displayName": "Text",
+        "type": "string",
+        "required": true
+      }
+    ]
+  },
+  {
+    "name": "workflow.set",
+    "displayName": "Set",
+    "description": "Set values and transform data",
+    "version": 1,
+    "group": ["transform"],
+    "inputs": ["main"],
+    "outputs": ["main"],
+    "properties": []
+  },
+  {
+    "name": "workflow.if",
+    "displayName": "IF",
+    "description": "Conditional routing based on expressions",
+    "version": 1,
+    "group": ["transform"],
+    "inputs": ["main"],
+    "outputs": ["main", "main"],
+    "properties": [
+      {
+        "name": "conditions",
+        "displayName": "Conditions",
+        "type": "object"
+      }
+    ]
+  }
+]
