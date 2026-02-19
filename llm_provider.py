@@ -8,7 +8,7 @@ def get_llm():
     if not api_key:
         raise ValueError("GROQ_API_KEY environment variable not set")
     
-    model = os.getenv("LLM_MODEL", "llama-3.1-70b-versatile")
+    model = os.getenv("LLM_MODEL", "meta-llama/llama-prompt-guard-2-22m")
     temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
     
     # NO JSON mode when using tools!

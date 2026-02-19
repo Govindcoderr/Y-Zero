@@ -5,7 +5,9 @@ from typing import Annotated, List
 from backend.chains.parameter_updater import update_node_parameters
 from langchain_core.language_models import BaseChatModel
 
-def create_update_parameters_tool(llm: BaseChatModel, search_engine):
+from backend.types.workflow import SimpleWorkflow
+
+def create_update_parameters_tool(llm: BaseChatModel, search_engine, workflow: SimpleWorkflow):
     @tool
     async def update_node_parameters_tool(
         state: dict,
