@@ -1,99 +1,92 @@
-
 [
   {
     "name": "workflow.scheduleTrigger",
     "displayName": "Schedule Trigger",
     "description": "Trigger workflow on a schedule using cron expressions",
     "version": 1,
-    "group": ["trigger"],
-    "inputs": [],
-    "outputs": ["main"],
+    "group": [
+      "trigger"
+    ],
     "properties": [
       {
         "name": "rule",
-        "displayName": "Rule",
-        "type": "string",
-        "default": "0 * * * *",
-        "required": true
+        "value": "0 * * * *"
       }
     ]
   },
   {
     "name": "workflow.httpRequest",
-    "displayName": "HTTP Request",
+    "displayName": "Fetch Weather Data",
     "description": "Make HTTP requests to APIs and webhooks",
     "version": 1,
-    "group": ["transform"],
-    "inputs": ["main"],
-    "outputs": ["main"],
+    "group": [
+      "transform"
+    ],
     "properties": [
       {
         "name": "url",
-        "displayName": "URL",
-        "type": "string",
-        "required": true
+        "value": "https://api.weatherapi.com/v1/current.json?key=YOUR_API_KEY&q=London"
       },
       {
         "name": "method",
-        "displayName": "Method",
-        "type": "options",
-        "options": ["GET", "POST", "PUT", "DELETE"],
-        "default": "GET"
-      }
-    ]
-  },
-  {
-    "name": "workflow.emailSend",
-    "displayName": "Send Email",
-    "description": "Send emails via SMTP",
-    "version": 1,
-    "group": ["output"],
-    "inputs": ["main"],
-    "outputs": ["main"],
-    "properties": [
-      {
-        "name": "toEmail",
-        "displayName": "To Email",
-        "type": "string",
-        "required": true
-      },
-      {
-        "name": "subject",
-        "displayName": "Subject",
-        "type": "string",
-        "required": true
-      },
-      {
-        "name": "text",
-        "displayName": "Text",
-        "type": "string",
-        "required": true
+        "value": "GET"
       }
     ]
   },
   {
     "name": "workflow.set",
-    "displayName": "Set",
+    "displayName": "Extract Condition",
     "description": "Set values and transform data",
     "version": 1,
-    "group": ["transform"],
-    "inputs": ["main"],
-    "outputs": ["main"],
-    "properties": []
+    "group": [
+      "transform"
+    ],
+    "properties": [
+      {
+        "name": "weatherStatus",
+        "value": "{{ $node[\"Fetch Weather Data\"].body.current.condition.text }}"
+      }
+    ]
   },
   {
     "name": "workflow.if",
-    "displayName": "IF",
+    "displayName": "Check for Rain",
     "description": "Conditional routing based on expressions",
     "version": 1,
-    "group": ["transform"],
-    "inputs": ["main"],
-    "outputs": ["main", "main"],
+    "group": [
+      "transform"
+    ],
     "properties": [
       {
         "name": "conditions",
-        "displayName": "Conditions",
-        "type": "object"
+        "value": {
+          "logic": "contains",
+          "variable": "weatherStatus",
+          "value": "Rain"
+        }
+      }
+    ]
+  },
+  {
+    "name": "workflow.emailSend",
+    "displayName": "Send Rain Alert",
+    "description": "Send emails via SMTP",
+    "version": 1,
+    "group": [
+      "output"
+    ],
+    "properties": [
+      {
+        "name": "toEmail",
+        "value": "user@example.com"
+      },
+      {
+        "name": "subject",
+        "value": "Weather Alert: Grab an Umbrella! ☔"
+      },
+      {
+        "name": "text",
+        "value": "The hourly check shows rain in your area. Current condition: {{ weatherStatus }}."
       }
     ]
   }

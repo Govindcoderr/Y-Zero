@@ -192,60 +192,60 @@ The workflow is ready to execute!"""
         
         return result
 
-# Example usage
-async def main():
-    # Load node types (in production, load from actual node definitions)
-    node_types = [
-        {
-            "name": "workflow.httpRequest",
-            "displayName": "HTTP Request",
-            "description": "Make HTTP requests to APIs",
-            "version": 1,
-            "inputs": ["main"],
-            "outputs": ["main"],
-            "properties": [
-                {"name": "url", "type": "string", "required": True},
-                {"name": "method", "type": "options", "options": ["GET", "POST", "PUT", "DELETE"]},
-            ]
-        },
-        {
-            "name": "workflow.scheduleTrigger",
-            "displayName": "Schedule Trigger",
-            "description": "Trigger workflow on a schedule",
-            "version": 1,
-            "inputs": [],
-            "outputs": ["main"],
-            "properties": [
-                {"name": "rule", "type": "string"},
-            ]
-        },
-        {
-            "name": "workflow.set",
-            "displayName": "Set",
-            "description": "Set values",
-            "version": 1,
-            "inputs": ["main"],
-            "outputs": ["main"],
-            "properties": []
-        },
-        # Add more node types...
-    ]
-    print("Loaded node types:", len(node_types))
-    # Initialize orchestrator
-    orchestrator = WorkflowBuilderOrchestrator(
-        api_key="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",
-        node_types=node_types
-    )
-    print("Orchestrator initialized")
-    # Process user message
-    result = await orchestrator.process_message(
-        "Create a workflow that checks a weather API every hour and sends me an email if it's going to rain"
-    )
+# # Example usage
+# async def main():
+#     # Load node types (in production, load from actual node definitions)
+#     node_types = [
+#         {
+#             "name": "workflow.httpRequest",
+#             "displayName": "HTTP Request",
+#             "description": "Make HTTP requests to APIs",
+#             "version": 1,
+#             "inputs": ["main"],
+#             "outputs": ["main"],
+#             "properties": [
+#                 {"name": "url", "type": "string", "required": True},
+#                 {"name": "method", "type": "options", "options": ["GET", "POST", "PUT", "DELETE"]},
+#             ]
+#         },
+#         {
+#             "name": "workflow.scheduleTrigger",
+#             "displayName": "Schedule Trigger",
+#             "description": "Trigger workflow on a schedule",
+#             "version": 1,
+#             "inputs": [],
+#             "outputs": ["main"],
+#             "properties": [
+#                 {"name": "rule", "type": "string"},
+#             ]
+#         },
+#         {
+#             "name": "workflow.set",
+#             "displayName": "Set",
+#             "description": "Set values",
+#             "version": 1,
+#             "inputs": ["main"],
+#             "outputs": ["main"],
+#             "properties": []
+#         },
+#         # Add more node types...
+#     ]
+#     print("Loaded node types:", len(node_types))
+#     # Initialize orchestrator
+#     orchestrator = WorkflowBuilderOrchestrator(
+#         api_key="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",
+#         node_types=node_types
+#     )
+#     print("Orchestrator initialized")
+#     # Process user message
+#     result = await orchestrator.process_message(
+#         "Create a workflow that checks a weather API every hour and sends me an email if it's going to rain"
+#     )
     
-    # Print result
-    print(json.dumps(result["workflow_json"].to_dict(), indent=2))
-    print("\nFinal message:", result["messages"][-1]["content"])
+#     # Print result
+#     print(json.dumps(result["workflow_json"].to_dict(), indent=2))
+#     print("\nFinal message:", result["messages"][-1]["content"])
 
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     import asyncio
+#     asyncio.run(main())

@@ -238,6 +238,20 @@ class WorkflowResponse(BaseModel):
     response: str
     session_id: str
 
+class HealthResponse(BaseModel):
+    """Health check response"""
+    status: str
+    message: str
+
+# Routes
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "message": "Workflow Builder API is running"
+    }
+
 
 @app.get("/node-types")
 async def get_node_types():
@@ -257,6 +271,7 @@ async def build_workflow(request: WorkflowRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     
     try:
+        print("Received message: ")
         # Process message
         result = await orchestrator.process_message(request.message)
         print("result testing  : ",result)
