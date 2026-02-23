@@ -1,6 +1,32 @@
+# # types/nodes.py
+# from typing import List, Any, Dict
+# from dataclasses import dataclass
+
+# @dataclass
+# class NodeSearchResult:
+#     name: str
+#     display_name: str
+#     description: str
+#     version: int
+#     inputs: Any
+#     outputs: Any
+#     score: float
+
+# @dataclass
+# class NodeDetails:
+#     name: str
+#     display_name: str
+#     description: str
+#     properties: List[Dict[str, Any]]
+#     inputs: Any
+#     outputs: Any
+#     version: int
+
+
 # types/nodes.py
 from typing import List, Any, Dict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
 
 @dataclass
 class NodeSearchResult:
@@ -11,6 +37,8 @@ class NodeSearchResult:
     inputs: Any
     outputs: Any
     score: float
+    node_type: str = "action"   # "trigger" | "action" | "conditional"
+
 
 @dataclass
 class NodeDetails:
@@ -21,3 +49,4 @@ class NodeDetails:
     inputs: Any
     outputs: Any
     version: int
+    node_type: str = "action"
