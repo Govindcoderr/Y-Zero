@@ -1,26 +1,9 @@
-# #
-# from langchain_groq import ChatGroq
-# import os
 
-# def get_llm():
-#     """Initialize and return Groq LLM instance"""
-#     api_key = os.getenv("GROQ_API_KEY")
-#     if not api_key:
-#         raise ValueError("GROQ_API_KEY environment variable not set")
-    
-#     model = os.getenv("LLM_MODEL", "meta-llama/llama-prompt-guard-2-22m")
-#     temperature = float(os.getenv("LLM_TEMPERATURE", "0.1"))
-    
-#     # NO JSON mode when using tools!
-#     return ChatGroq(
-#         model=model,
-#         groq_api_key=api_key,
-#         temperature=temperature,  # Very low = focused output
-#         max_retries=2
-#     )
 # llm_provider.py
 from langchain_groq import ChatGroq
 import os
+import dotenv
+dotenv.load_dotenv()
 
 # ---------------------------------------------------------------
 # Groq models and their tool-calling support (Feb 2026)
@@ -42,18 +25,14 @@ import os
 
 # These models are confirmed to support tool/function calling on Groq
 TOOL_CAPABLE_MODELS = {
-    "llama-3.3-70b-versatile",
-    "llama3-groq-70b-8192-tool-use-preview",
-    "llama3-groq-8b-8192-tool-use-preview",
-    "llama-3.1-8b-instant",
-    "llama3-70b-8192",
-    "llama3-8b-8192",
+    "openai/gpt-oss-120b"
 }
 
+
 # Default — best balance of speed + capability for tool calling
-DEFAULT_TOOL_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_TOOL_MODEL = "openai/gpt-oss-120b"
 # Default for non-tool tasks (discovery, categorization) — can be same or faster
-DEFAULT_FAST_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_FAST_MODEL = "openai/gpt-oss-120b"
 
 
 def _get_api_key() -> str:

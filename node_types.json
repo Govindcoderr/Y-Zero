@@ -1,702 +1,1599 @@
 [
   {
-    "name": "MANUAL",
-    "displayName": "Manual Trigger",
-    "description": "Start the workflow manually by clicking a button",
-    "nodeType": "trigger",
-    "codex": {
-      "alias": [
-        "manual",
-        "button",
-        "start",
-        "test",
-        "run"
-      ]
-    },
-    "parameters": {
-      "operation": "2"
-    }
+    "id": 1,
+    "type": "SCHEDULE_TRIGGER",
+    "name": "Schedule Trigger",
+    "category_id": 1,
+    "version": 1,
+    "description": "Trigger workflow on a schedule using cron expressions or intervals",
+    "icon": "schedule.svg",
+    "class_path": ["nodes/ScheduleTrigger/scheduleTrigger.node"],
+    "class_name": ["ScheduleTrigger"],
+    "conditional": [],
+    "actions": [],
+    "triggers": [
+      {
+        "name": "rule",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Trigger Rules",
+        "options": [
+          {
+            "name": "interval",
+            "values": [
+              {
+                "name": "field",
+                "type": "options",
+                "default": "hours",
+                "options": [
+                  { "name": "Seconds", "value": "seconds" },
+                  { "name": "Minutes", "value": "minutes" },
+                  { "name": "Hours", "value": "hours" },
+                  { "name": "Days", "value": "days" },
+                  { "name": "Weeks", "value": "weeks" },
+                  { "name": "Months", "value": "months" },
+                  { "name": "Custom (Cron)", "value": "cronExpression" }
+                ],
+                "displayName": "Trigger Interval"
+              },
+              {
+                "name": "secondsInterval",
+                "type": "number",
+                "default": 30,
+                "displayName": "Seconds Between Triggers",
+                "displayOptions": { "show": { "field": ["seconds"] } }
+              },
+              {
+                "name": "minutesInterval",
+                "type": "number",
+                "default": 5,
+                "displayName": "Minutes Between Triggers",
+                "displayOptions": { "show": { "field": ["minutes"] } }
+              },
+              {
+                "name": "hoursInterval",
+                "type": "number",
+                "default": 1,
+                "displayName": "Hours Between Triggers",
+                "displayOptions": { "show": { "field": ["hours"] } }
+              },
+              {
+                "name": "daysInterval",
+                "type": "number",
+                "default": 1,
+                "displayName": "Days Between Triggers",
+                "displayOptions": { "show": { "field": ["days"] } }
+              },
+              {
+                "name": "triggerAtHour",
+                "type": "options",
+                "default": 0,
+                "options": [
+                  { "name": "Midnight", "value": 0 },
+                  { "name": "1am", "value": 1 },
+                  { "name": "2am", "value": 2 },
+                  { "name": "6am", "value": 6 },
+                  { "name": "9am", "value": 9 },
+                  { "name": "12pm", "value": 12 },
+                  { "name": "6pm", "value": 18 }
+                ],
+                "displayName": "Trigger at Hour",
+                "displayOptions": { "show": { "field": ["days", "weeks", "months"] } }
+              },
+              {
+                "name": "cronExpression",
+                "type": "string",
+                "default": "0 * * * *",
+                "displayName": "Cron Expression",
+                "placeholder": "0 * * * *",
+                "displayOptions": { "show": { "field": ["cronExpression"] } }
+              }
+            ],
+            "displayName": "Rule"
+          }
+        ],
+        "typeOptions": { "multipleValues": true, "multipleValueButtonText": "Add Rule" }
+      }
+    ],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
   },
   {
-    "name": "SCHEDULE",
-    "displayName": "Schedule Trigger",
-    "description": "Trigger workflow at a specific time, interval or cron expression",
-    "nodeType": "trigger",
-    "codex": {
-      "alias": [
-        "schedule",
-        "cron",
-        "interval",
-        "timer",
-        "daily",
-        "hourly",
-        "weekly",
-        "recurring",
-        "periodic",
-        "time"
-      ]
-    },
-    "parameters": {
-      "operation": "1",
-      "rule": "0 * * * *",
-      "timezone": "UTC"
-    }
-  },
-  {
-    "name": "WEBHOOK",
-    "displayName": "Webhook Trigger",
-    "description": "Receive HTTP requests from external services and APIs",
-    "nodeType": "trigger",
-    "codex": {
-      "alias": [
-        "webhook",
-        "http",
-        "listener",
-        "endpoint",
-        "receive",
-        "inbound",
-        "POST",
-        "GET",
-        "api"
-      ]
-    },
-    "parameters": {
-      "operation": "1",
-      "path": "/webhook",
-      "method": "POST"
-    }
-  },
-  {
-    "name": "HTTP REQUEST",
-    "displayName": "HTTP Request",
-    "description": "Make HTTP requests to any REST API, web service or URL",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "http",
-        "api",
-        "rest",
-        "fetch",
-        "curl",
-        "request",
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE",
-        "url",
-        "web",
-        "call"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "url": "",
-      "method": "GET",
-      "sendBody": false,
-      "sendQuery": false,
-      "sendHeaders": false,
-      "contentType": "json",
-      "specifyBody": "json",
-      "specifyQuery": "keypair",
-      "specifyHeaders": "keypair",
-      "authentication": "none",
-      "bodyParameters": {
-        "parameters": [
-          {}
-        ]
+    "id": 2,
+    "type": "WEBHOOK",
+    "name": "Webhook",
+    "category_id": 1,
+    "version": 1,
+    "description": "Starts the workflow when a webhook is called",
+    "icon": "webhook.svg",
+    "class_path": ["nodes/Webhook/webhook.node"],
+    "class_name": ["Webhook"],
+    "conditional": [],
+    "actions": [],
+    "triggers": [
+      {
+        "name": "httpMethod",
+        "type": "options",
+        "default": "GET",
+        "options": [
+          { "name": "DELETE", "value": "DELETE" },
+          { "name": "GET", "value": "GET" },
+          { "name": "HEAD", "value": "HEAD" },
+          { "name": "PATCH", "value": "PATCH" },
+          { "name": "POST", "value": "POST" },
+          { "name": "PUT", "value": "PUT" }
+        ],
+        "required": true,
+        "displayName": "HTTP Method"
       },
-      "queryParameters": {
-        "parameters": [
-          {}
-        ]
+      {
+        "name": "path",
+        "type": "string",
+        "default": "webhook",
+        "required": true,
+        "displayName": "Path",
+        "placeholder": "webhook"
       },
-      "headerParameters": {
-        "parameters": [
-          {}
+      {
+        "name": "responseMode",
+        "type": "options",
+        "default": "onReceived",
+        "options": [
+          { "name": "Immediately", "value": "onReceived" },
+          { "name": "When Last Node Finishes", "value": "lastNode" }
+        ],
+        "displayName": "Respond"
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "options": [
+          {
+            "name": "rawBody",
+            "type": "boolean",
+            "default": false,
+            "displayName": "Binary Property"
+          },
+          {
+            "name": "responseData",
+            "type": "string",
+            "default": "",
+            "displayName": "Response Data"
+          },
+          {
+            "name": "responseContentType",
+            "type": "string",
+            "default": "",
+            "displayName": "Response Content-Type"
+          },
+          {
+            "name": "responseHeaders",
+            "type": "fixedCollection",
+            "default": {},
+            "displayName": "Response Headers",
+            "typeOptions": { "multipleValues": true }
+          }
         ]
       }
-    }
+    ],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
   },
   {
-    "name": "SEND EMAIL",
-    "displayName": "Send Email",
-    "description": "Send emails via SMTP to one or multiple recipients",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "email",
-        "mail",
-        "smtp",
-        "send",
-        "notify",
-        "alert",
-        "message"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "toEmail": "",
-      "subject": "",
-      "text": "",
-      "fromEmail": ""
-    }
+    "id": 3,
+    "type": "HTTP_REQUEST",
+    "name": "HTTP Request",
+    "category_id": 1,
+    "version": 3,
+    "description": "Makes an HTTP request and returns the response data",
+    "icon": "http.svg",
+    "class_path": ["nodes/HttpRequest/httpRequest.node"],
+    "class_name": ["HttpRequest"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "method",
+        "type": "options",
+        "default": "GET",
+        "options": [
+          { "name": "DELETE", "value": "DELETE" },
+          { "name": "GET", "value": "GET" },
+          { "name": "HEAD", "value": "HEAD" },
+          { "name": "OPTIONS", "value": "OPTIONS" },
+          { "name": "PATCH", "value": "PATCH" },
+          { "name": "POST", "value": "POST" },
+          { "name": "PUT", "value": "PUT" }
+        ],
+        "required": true,
+        "displayName": "Method"
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "displayName": "URL",
+        "placeholder": "https://example.com/api"
+      },
+      {
+        "name": "authentication",
+        "type": "options",
+        "default": "none",
+        "options": [
+          { "name": "None", "value": "none" },
+          { "name": "Predefined Credential Type", "value": "predefinedCredentialType" },
+          { "name": "Generic Credential Type", "value": "genericCredentialType" }
+        ],
+        "displayName": "Authentication"
+      },
+      {
+        "name": "sendHeaders",
+        "type": "boolean",
+        "default": false,
+        "displayName": "Send Headers"
+      },
+      {
+        "name": "headerParameters",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Header Parameters",
+        "options": [
+          {
+            "name": "parameters",
+            "values": [
+              { "name": "name", "type": "string", "default": "", "displayName": "Name" },
+              { "name": "value", "type": "string", "default": "", "displayName": "Value" }
+            ],
+            "displayName": "Header",
+            "typeOptions": { "multipleValueButtonText": "Add Header" }
+          }
+        ],
+        "typeOptions": { "multipleValues": true },
+        "displayOptions": { "show": { "sendHeaders": [true] } }
+      },
+      {
+        "name": "sendQuery",
+        "type": "boolean",
+        "default": false,
+        "displayName": "Send Query Parameters"
+      },
+      {
+        "name": "queryParameters",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Query Parameters",
+        "options": [
+          {
+            "name": "parameters",
+            "values": [
+              { "name": "name", "type": "string", "default": "", "displayName": "Name" },
+              { "name": "value", "type": "string", "default": "", "displayName": "Value" }
+            ],
+            "displayName": "Parameter",
+            "typeOptions": { "multipleValueButtonText": "Add Parameter" }
+          }
+        ],
+        "typeOptions": { "multipleValues": true },
+        "displayOptions": { "show": { "sendQuery": [true] } }
+      },
+      {
+        "name": "sendBody",
+        "type": "boolean",
+        "default": false,
+        "displayName": "Send Body"
+      },
+      {
+        "name": "contentType",
+        "type": "options",
+        "default": "json",
+        "options": [
+          { "name": "JSON", "value": "json" },
+          { "name": "Form Urlencoded", "value": "form-urlencoded" },
+          { "name": "Multipart Form Data", "value": "multipart-form-data" },
+          { "name": "Raw", "value": "raw" }
+        ],
+        "displayName": "Content Type",
+        "displayOptions": { "show": { "sendBody": [true] } }
+      },
+      {
+        "name": "body",
+        "type": "json",
+        "default": "",
+        "displayName": "Body",
+        "typeOptions": { "alwaysOpenEditWindow": true },
+        "displayOptions": { "show": { "sendBody": [true], "contentType": ["json"] } }
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "options": [
+          { "name": "timeout", "type": "number", "default": 10000, "displayName": "Timeout (ms)" },
+          { "name": "redirect", "type": "boolean", "default": true, "displayName": "Follow Redirect" },
+          { "name": "ignoreResponseCode", "type": "boolean", "default": false, "displayName": "Ignore Response Code" },
+          { "name": "proxy", "type": "string", "default": "", "displayName": "Proxy" },
+          {
+            "name": "response",
+            "type": "options",
+            "default": "json",
+            "options": [
+              { "name": "Autodetect", "value": "autodetect" },
+              { "name": "JSON", "value": "json" },
+              { "name": "Text", "value": "text" },
+              { "name": "File", "value": "file" }
+            ],
+            "displayName": "Response Format"
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
   },
   {
-    "name": "GMAIL",
-    "displayName": "Gmail",
-    "description": "Send, read and manage emails in Gmail",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "gmail",
-        "google",
-        "email",
-        "mail",
-        "send",
-        "inbox",
-        "google mail"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "message",
-      "to": "",
-      "subject": "",
-      "message": ""
-    }
+    "id": 4,
+    "type": "SET",
+    "name": "Set",
+    "category_id": 1,
+    "version": 3,
+    "description": "Sets values on items and optionally removes other values",
+    "icon": "set.svg",
+    "class_path": ["nodes/Set/set.node"],
+    "class_name": ["Set"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "mode",
+        "type": "options",
+        "default": "manual",
+        "options": [
+          { "name": "Manual Mapping", "value": "manual" },
+          { "name": "JSON Output", "value": "raw" }
+        ],
+        "displayName": "Mode"
+      },
+      {
+        "name": "fields",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Fields to Set",
+        "options": [
+          {
+            "name": "values",
+            "values": [
+              {
+                "name": "name",
+                "type": "string",
+                "default": "",
+                "required": true,
+                "displayName": "Field Name"
+              },
+              {
+                "name": "type",
+                "type": "options",
+                "default": "string",
+                "options": [
+                  { "name": "String", "value": "string" },
+                  { "name": "Number", "value": "number" },
+                  { "name": "Boolean", "value": "boolean" },
+                  { "name": "Array", "value": "array" },
+                  { "name": "Object", "value": "object" }
+                ],
+                "displayName": "Type"
+              },
+              {
+                "name": "string",
+                "type": "string",
+                "default": "",
+                "displayName": "Value",
+                "displayOptions": { "show": { "type": ["string"] } }
+              },
+              {
+                "name": "number",
+                "type": "number",
+                "default": 0,
+                "displayName": "Value",
+                "displayOptions": { "show": { "type": ["number"] } }
+              },
+              {
+                "name": "boolean",
+                "type": "boolean",
+                "default": false,
+                "displayName": "Value",
+                "displayOptions": { "show": { "type": ["boolean"] } }
+              }
+            ],
+            "displayName": "Value",
+            "typeOptions": { "multipleValueButtonText": "Add Field" }
+          }
+        ],
+        "typeOptions": { "multipleValues": true },
+        "displayOptions": { "show": { "mode": ["manual"] } }
+      },
+      {
+        "name": "jsonOutput",
+        "type": "json",
+        "default": "{\n  \n}",
+        "displayName": "JSON",
+        "typeOptions": { "alwaysOpenEditWindow": true },
+        "displayOptions": { "show": { "mode": ["raw"] } }
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "options": [
+          { "name": "includeBinary", "type": "boolean", "default": false, "displayName": "Include Binary Data" },
+          { "name": "ignoreConversionErrors", "type": "boolean", "default": false, "displayName": "Ignore Conversion Errors" }
+        ]
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
   },
   {
-    "name": "SLACK",
-    "displayName": "Slack",
-    "description": "Send messages to Slack channels or users",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "slack",
-        "chat",
-        "message",
-        "team",
-        "notify",
-        "alert",
-        "channel"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "message",
-      "channel": "",
-      "text": ""
-    }
-  },
-  {
-    "name": "TELEGRAM",
-    "displayName": "Telegram",
-    "description": "Send messages via Telegram Bot to users or groups",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "telegram",
-        "bot",
-        "message",
-        "chat",
-        "notify",
-        "phone",
-        "mobile",
-        "msg",
-        "instant"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "message",
-      "chatId": "",
-      "text": ""
-    }
-  },
-  {
-    "name": "WHATSAPP",
-    "displayName": "WhatsApp",
-    "description": "Send WhatsApp messages using WhatsApp Business Cloud API",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "whatsapp",
-        "wa",
-        "phone",
-        "mobile",
-        "message",
-        "chat",
-        "notify",
-        "whatsapp business"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "phoneNumberId": "",
-      "to": "",
-      "messageType": "text",
-      "text": ""
-    }
-  },
-  {
-    "name": "TWILIO SMS",
-    "displayName": "Twilio SMS",
-    "description": "Send SMS and WhatsApp messages using Twilio",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "twilio",
-        "sms",
-        "text message",
-        "phone",
-        "mobile",
-        "send sms",
-        "notify"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "sms",
-      "to": "",
-      "from": "",
-      "body": ""
-    }
-  },
-  {
-    "name": "GOOGLE SHEETS",
-    "displayName": "Google Sheets",
-    "description": "Read, write and update rows in Google Sheets spreadsheet",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "google sheets",
-        "sheets",
-        "spreadsheet",
-        "excel",
-        "table",
-        "data",
-        "google",
-        "csv"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "sheet",
-      "spreadsheetId": ""
-    }
-  },
-  {
-    "name": "NOTION",
-    "displayName": "Notion",
-    "description": "Create, read and update pages and databases in Notion",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "notion",
-        "page",
-        "note",
-        "document",
-        "wiki"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "page"
-    }
-  },
-  {
-    "name": "AIRTABLE",
-    "displayName": "Airtable",
-    "description": "Read, create, update and delete records in Airtable",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "airtable",
-        "spreadsheet",
-        "table",
-        "record",
-        "base"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "record",
-      "baseId": "",
-      "tableId": ""
-    }
-  },
-  {
-    "name": "POSTGRES",
-    "displayName": "Postgres",
-    "description": "Query and insert data into a PostgreSQL database",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "postgres",
-        "postgresql",
-        "sql",
-        "database",
-        "db",
-        "query",
-        "relational",
-        "postgres db"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "query": ""
-    }
-  },
-  {
-    "name": "MYSQL",
-    "displayName": "MySQL",
-    "description": "Query and modify data in a MySQL / MariaDB database",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "mysql",
-        "sql",
-        "database",
-        "db",
-        "query",
-        "mariadb",
-        "relational",
-        "mysql db"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "query": ""
-    }
-  },
-  {
-    "name": "MONGODB",
-    "displayName": "MongoDB",
-    "description": "Find, insert, update and delete documents in MongoDB",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "mongodb",
-        "mongo",
-        "nosql",
-        "database",
-        "document",
-        "db",
-        "mongodb database"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "collection": ""
-    }
-  },
-  {
-    "name": "GITHUB",
-    "displayName": "GitHub",
-    "description": "Interact with GitHub repositories, issues and pull requests",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "github",
-        "git",
-        "repo",
-        "code",
-        "issue",
-        "pr",
-        "pullrequest",
-        "version control"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "issue"
-    }
-  },
-  {
-    "name": "JIRA",
-    "displayName": "Jira",
-    "description": "Create, update and manage Jira tickets and projects",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "jira",
-        "issue",
-        "ticket",
-        "project",
-        "task",
-        "bug",
-        "sprint"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "issue"
-    }
-  },
-  {
-    "name": "OPENAI",
-    "displayName": "OpenAI",
-    "description": "Generate text, images and embeddings using OpenAI GPT models",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "openai",
-        "gpt",
-        "chatgpt",
-        "ai",
-        "llm",
-        "language model",
-        "text generation",
-        "generate",
-        "chat",
-        "language",
-        "model"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resource": "chat",
-      "model": "gpt-4o"
-    }
-  },
-  {
-    "name": "ANTHROPIC",
-    "displayName": "Anthropic Claude",
-    "description": "Generate text using Anthropic Claude AI models",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "anthropic",
-        "claude",
-        "ai",
-        "llm",
-        "language model",
-        "text generation",
-        "chat",
-        "language",
-        "model"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "model": "claude-3-5-sonnet-20241022"
-    }
-  },
-  {
-    "name": "CODE",
-    "displayName": "Code",
-    "description": "Run custom JavaScript or Python code to process data",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "code",
-        "javascript",
-        "python",
-        "script",
-        "function",
-        "custom",
-        "js",
-        "py"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "language": "javaScript",
-      "jsCode": ""
-    }
-  },
-  {
-    "name": "EDIT FIELDS",
-    "displayName": "Edit Fields",
-    "description": "Set, remove or transform data fields and values",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "set",
-        "edit",
-        "transform",
-        "map",
-        "field",
-        "assign",
-        "modify",
-        "data",
-        "fields"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "mode": "manual",
-      "fields": []
-    }
-  },
-  {
-    "name": "MERGE",
-    "displayName": "Merge",
-    "description": "Merge data from multiple workflow branches into one",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "merge",
-        "combine",
-        "join",
-        "union",
-        "concat"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "mode": "append"
-    }
-  },
-  {
-    "name": "LOOP",
-    "displayName": "Loop Over Items",
-    "description": "Iterate over a list of items and process each one in a loop",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "loop",
-        "iterate",
-        "batch",
-        "forEach",
-        "repeat",
-        "split",
-        "each"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "batchSize": 10
-    }
-  },
-  {
-    "name": "WAIT",
-    "displayName": "Wait",
-    "description": "Pause workflow execution for a specified amount of time",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "wait",
-        "pause",
-        "delay",
-        "sleep",
-        "hold"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "resume": "timeInterval",
-      "amount": 5,
-      "unit": "seconds"
-    }
-  },
-  {
-    "name": "HTML EXTRACT",
-    "displayName": "HTML Extract",
-    "description": "Extract and parse data from HTML using CSS selectors (web scraping)",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "html",
-        "scrape",
-        "parse",
-        "extract",
-        "css",
-        "selector",
-        "web",
-        "scraping"
-      ]
-    },
-    "parameters": {
-      "operation": "3"
-    }
-  },
-  {
-    "name": "READ FILE",
-    "displayName": "Read File",
-    "description": "Read files from disk or cloud storage",
-    "nodeType": "action",
-    "codex": {
-      "alias": [
-        "file",
-        "read",
-        "disk",
-        "storage",
-        "csv",
-        "json",
-        "txt",
-        "upload"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "fileOperation": "read",
-      "fileName": ""
-    }
-  },
-  {
+    "id": 5,
+    "type": "IF",
     "name": "IF",
-    "displayName": "IF Condition",
-    "description": "Route data to different branches based on a true/false condition",
-    "nodeType": "conditional",
-    "codex": {
-      "alias": [
-        "if",
-        "condition",
-        "branch",
-        "route",
-        "check",
-        "filter",
-        "decision",
-        "boolean"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "conditions": {}
-    }
+    "category_id": 1,
+    "version": 2,
+    "description": "Splits a workflow conditionally based on comparison operations",
+    "icon": "if.svg",
+    "class_path": ["nodes/If/if.node"],
+    "class_name": ["If"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "conditions",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Conditions",
+        "options": [
+          {
+            "name": "string",
+            "values": [
+              { "name": "value1", "type": "string", "default": "", "displayName": "Value 1" },
+              {
+                "name": "operation",
+                "type": "options",
+                "default": "equal",
+                "options": [
+                  { "name": "Contains", "value": "contains" },
+                  { "name": "Does Not Contain", "value": "notContains" },
+                  { "name": "Ends With", "value": "endsWith" },
+                  { "name": "Equal", "value": "equal" },
+                  { "name": "Not Equal", "value": "notEqual" },
+                  { "name": "Regex", "value": "regex" },
+                  { "name": "Starts With", "value": "startsWith" },
+                  { "name": "Is Empty", "value": "isEmpty" },
+                  { "name": "Is Not Empty", "value": "isNotEmpty" }
+                ],
+                "displayName": "Operation"
+              },
+              { "name": "value2", "type": "string", "default": "", "displayName": "Value 2" }
+            ],
+            "displayName": "String",
+            "typeOptions": { "multipleValueButtonText": "Add Condition" }
+          },
+          {
+            "name": "number",
+            "values": [
+              { "name": "value1", "type": "number", "default": 0, "displayName": "Value 1" },
+              {
+                "name": "operation",
+                "type": "options",
+                "default": "equal",
+                "options": [
+                  { "name": "Equal", "value": "equal" },
+                  { "name": "Not Equal", "value": "notEqual" },
+                  { "name": "Larger", "value": "larger" },
+                  { "name": "Larger or Equal", "value": "largerEqual" },
+                  { "name": "Smaller", "value": "smaller" },
+                  { "name": "Smaller or Equal", "value": "smallerEqual" }
+                ],
+                "displayName": "Operation"
+              },
+              { "name": "value2", "type": "number", "default": 0, "displayName": "Value 2" }
+            ],
+            "displayName": "Number",
+            "typeOptions": { "multipleValueButtonText": "Add Condition" }
+          },
+          {
+            "name": "boolean",
+            "values": [
+              { "name": "value1", "type": "boolean", "default": false, "displayName": "Value 1" },
+              {
+                "name": "operation",
+                "type": "options",
+                "default": "equal",
+                "options": [
+                  { "name": "Equal", "value": "equal" },
+                  { "name": "Not Equal", "value": "notEqual" }
+                ],
+                "displayName": "Operation"
+              },
+              { "name": "value2", "type": "boolean", "default": false, "displayName": "Value 2" }
+            ],
+            "displayName": "Boolean",
+            "typeOptions": { "multipleValueButtonText": "Add Condition" }
+          },
+          {
+            "name": "dateTime",
+            "values": [
+              { "name": "value1", "type": "dateTime", "default": "", "displayName": "Value 1" },
+              {
+                "name": "operation",
+                "type": "options",
+                "default": "after",
+                "options": [
+                  { "name": "After", "value": "after" },
+                  { "name": "Before", "value": "before" },
+                  { "name": "Equal", "value": "equal" }
+                ],
+                "displayName": "Operation"
+              },
+              { "name": "value2", "type": "dateTime", "default": "", "displayName": "Value 2" }
+            ],
+            "displayName": "Date & Time",
+            "typeOptions": { "multipleValueButtonText": "Add Condition" }
+          }
+        ],
+        "typeOptions": { "multipleValues": true }
+      },
+      {
+        "name": "combineOperation",
+        "type": "options",
+        "default": "all",
+        "options": [
+          { "name": "ALL conditions must be true", "value": "all" },
+          { "name": "ANY condition must be true", "value": "any" }
+        ],
+        "displayName": "Combine"
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
   },
   {
-    "name": "SWITCH",
-    "displayName": "Switch",
-    "description": "Route data to multiple outputs based on different conditions or values",
-    "nodeType": "conditional",
-    "codex": {
-      "alias": [
-        "switch",
-        "route",
-        "case",
-        "branch",
-        "multiple",
-        "condition",
-        "multi"
-      ]
-    },
-    "parameters": {
-      "operation": "3",
-      "mode": "rules",
-      "rules": []
-    }
+    "id": 6,
+    "type": "CODE",
+    "name": "Code",
+    "category_id": 1,
+    "version": 2,
+    "description": "Run custom JavaScript or Python code",
+    "icon": "code.svg",
+    "class_path": ["nodes/Code/code.node"],
+    "class_name": ["Code"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "language",
+        "type": "options",
+        "default": "javaScript",
+        "options": [
+          { "name": "JavaScript", "value": "javaScript" },
+          { "name": "Python (Beta)", "value": "python" }
+        ],
+        "displayName": "Language"
+      },
+      {
+        "name": "mode",
+        "type": "options",
+        "default": "runOnceForAllItems",
+        "options": [
+          { "name": "Run Once for All Items", "value": "runOnceForAllItems" },
+          { "name": "Run Once for Each Item", "value": "runOnceForEachItem" }
+        ],
+        "displayName": "Mode"
+      },
+      {
+        "name": "jsCode",
+        "type": "string",
+        "default": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();",
+        "displayName": "JavaScript",
+        "typeOptions": { "editor": "codeNodeEditor", "editorLanguage": "javaScript" },
+        "displayOptions": { "show": { "language": ["javaScript"], "mode": ["runOnceForAllItems"] } }
+      },
+      {
+        "name": "pythonCode",
+        "type": "string",
+        "default": "for item in _input.all():\n  item.json['myNewField'] = 1\n\nreturn _input.all()",
+        "displayName": "Python",
+        "typeOptions": { "editor": "codeNodeEditor", "editorLanguage": "python" },
+        "displayOptions": { "show": { "language": ["python"], "mode": ["runOnceForAllItems"] } }
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
   },
   {
-    "name": "FILTER",
-    "displayName": "Filter",
-    "description": "Keep or discard items based on a condition",
-    "nodeType": "conditional",
-    "codex": {
-      "alias": [
-        "filter",
-        "remove",
-        "keep",
-        "discard",
-        "condition",
-        "check",
-        "where"
-      ]
+    "id": 7,
+    "type": "SEND_EMAIL",
+    "name": "Send Email",
+    "category_id": 2,
+    "version": 2,
+    "description": "Sends an email using SMTP protocol",
+    "icon": "email.svg",
+    "class_path": ["nodes/EmailSend/emailSend.node"],
+    "class_name": ["EmailSend"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "credential_id",
+        "type": "authentication",
+        "default": "",
+        "displayName": "Credential to connect with",
+        "typeOptions": {},
+        "isExpression": false
+      },
+      {
+        "name": "fromEmail",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "isRequired": true,
+        "displayName": "From Email",
+        "placeholder": "sender@domain.com"
+      },
+      {
+        "name": "toEmail",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "isRequired": true,
+        "displayName": "To Email",
+        "placeholder": "recipient@domain.com"
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "displayName": "Subject",
+        "placeholder": "My subject line"
+      },
+      {
+        "name": "emailType",
+        "type": "options",
+        "default": "text",
+        "options": [
+          { "name": "HTML", "value": "html" },
+          { "name": "Text", "value": "text" }
+        ],
+        "displayName": "Email Type"
+      },
+      {
+        "name": "message",
+        "type": "string",
+        "default": "",
+        "displayName": "Text",
+        "typeOptions": { "rows": 5 },
+        "displayOptions": { "show": { "emailType": ["text"] } }
+      },
+      {
+        "name": "html",
+        "type": "string",
+        "default": "",
+        "displayName": "HTML",
+        "typeOptions": { "editor": "htmlEditor" },
+        "displayOptions": { "show": { "emailType": ["html"] } }
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "placeholder": "Add Option",
+        "options": [
+          { "name": "ccEmail", "type": "string", "default": "", "displayName": "CC Email" },
+          { "name": "bccEmail", "type": "string", "default": "", "displayName": "BCC Email" },
+          { "name": "replyTo", "type": "string", "default": "", "displayName": "Reply To" },
+          { "name": "attachments", "type": "string", "default": "", "displayName": "Attachments" },
+          { "name": "priority", "type": "options", "default": "normal", "options": [
+              { "name": "High", "value": "high" },
+              { "name": "Normal", "value": "normal" },
+              { "name": "Low", "value": "low" }
+            ], "displayName": "Priority"
+          }
+        ]
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": true,
+    "apikey_form_properties": [
+      { "name": "host", "type": "string", "default": "", "isRequired": true, "displayName": "SMTP Host" },
+      { "name": "port", "type": "number", "default": 465, "isRequired": true, "displayName": "SMTP Port" },
+      { "name": "user", "type": "string", "default": "", "isRequired": true, "displayName": "User" },
+      { "name": "password", "type": "string", "default": "", "isRequired": true, "displayName": "Password", "typeOptions": { "password": true } },
+      { "name": "ssl", "type": "boolean", "default": true, "displayName": "SSL/TLS" }
+    ],
+    "category_name": "Communication"
+  },
+  {
+    "id": 8,
+    "type": "SLACK",
+    "name": "Slack",
+    "category_id": 2,
+    "version": 2,
+    "description": "Send messages, create channels, and manage Slack workspace",
+    "icon": "slack.svg",
+    "class_path": ["nodes/Slack/slack.node", "nodes/Slack/slackTrigger.node"],
+    "class_name": ["Slack"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "credential_id",
+        "type": "authentication",
+        "default": "",
+        "displayName": "Authentication",
+        "typeOptions": {},
+        "isExpression": false
+      },
+      {
+        "name": "resource",
+        "type": "options",
+        "default": "message",
+        "options": [
+          { "name": "Channel", "value": "channel" },
+          { "name": "File", "value": "file" },
+          { "name": "Message", "value": "message" },
+          { "name": "Reaction", "value": "reaction" },
+          { "name": "Star", "value": "star" },
+          { "name": "User", "value": "user" },
+          { "name": "User Group", "value": "userGroup" },
+          { "name": "User Profile", "value": "userProfile" }
+        ],
+        "required": true,
+        "displayName": "Resource"
+      },
+      {
+        "name": "operation",
+        "type": "options",
+        "default": "post",
+        "options": [
+          { "name": "Delete", "value": "delete", "action": "Delete a message", "description": "Deletes a message" },
+          { "name": "Get Permalink", "value": "getPermalink", "action": "Get a message permalink", "description": "Retrieves message permalink" },
+          { "name": "Post", "value": "post", "action": "Post a message", "description": "Posts a message to a channel" },
+          { "name": "Reply", "value": "reply", "action": "Reply to a message", "description": "Replies to a message in a thread" },
+          { "name": "Search", "value": "search", "action": "Search messages", "description": "Searches messages" },
+          { "name": "Update", "value": "update", "action": "Update a message", "description": "Updates a message" }
+        ],
+        "required": true,
+        "displayName": "Operation",
+        "displayOptions": { "show": { "resource": ["message"] } }
+      },
+      {
+        "name": "channel",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "displayName": "Channel",
+        "placeholder": "#general",
+        "displayOptions": { "show": { "resource": ["message"], "operation": ["post", "reply", "update"] } }
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "default": "",
+        "displayName": "Message Text",
+        "typeOptions": { "rows": 4 },
+        "displayOptions": { "show": { "resource": ["message"], "operation": ["post", "reply", "update"] } }
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "placeholder": "Add Option",
+        "options": [
+          { "name": "username", "type": "string", "default": "", "displayName": "Bot Username" },
+          { "name": "icon_emoji", "type": "string", "default": "", "displayName": "Icon Emoji", "placeholder": ":robot_face:" },
+          { "name": "icon_url", "type": "string", "default": "", "displayName": "Icon URL" },
+          { "name": "mrkdwn", "type": "boolean", "default": true, "displayName": "Use Markdown" },
+          { "name": "unfurl_links", "type": "boolean", "default": false, "displayName": "Unfurl Links" },
+          { "name": "attachments", "type": "json", "default": "", "displayName": "Attachments" },
+          { "name": "blocks", "type": "json", "default": "", "displayName": "Blocks" }
+        ],
+        "displayOptions": { "show": { "resource": ["message"], "operation": ["post"] } }
+      }
+    ],
+    "triggers": [
+      {
+        "name": "trigger",
+        "type": "options",
+        "default": "any_event",
+        "options": [
+          { "name": "Any Event", "value": "any_event" },
+          { "name": "Bot / App Mention", "value": "app_mention" },
+          { "name": "File Made Public", "value": "file_public" },
+          { "name": "File Shared", "value": "file_shared" },
+          { "name": "Message Posted to Channel", "value": "message" },
+          { "name": "New User", "value": "team_join" },
+          { "name": "Reaction Added", "value": "reaction_added" }
+        ],
+        "required": true,
+        "displayName": "Trigger On"
+      },
+      {
+        "name": "watchedChannels",
+        "type": "multiOptions",
+        "default": [],
+        "displayName": "Watch Channels",
+        "description": "Channels to watch. Choose from the list or specify by ID."
+      }
+    ],
+    "execution_endpoint": "https://slack.com/api",
+    "credential_endpoint": "https://slack.com/oauth/v2/authorize",
+    "token_url": "https://slack.com/api/oauth.v2.access",
+    "oauth2": true,
+    "apikey": false,
+    "oauth_headers": {
+      "Content-Type": "application/x-www-form-urlencoded"
     },
-    "parameters": {
-      "operation": "3",
-      "conditions": {}
-    }
+    "category_name": "Communication"
+  },
+  {
+    "id": 9,
+    "type": "GOOGLE_SHEETS",
+    "name": "Google Sheets",
+    "category_id": 3,
+    "version": 4,
+    "description": "Read, write, and manage Google Sheets spreadsheets",
+    "icon": "google-sheets.svg",
+    "class_path": ["nodes/GoogleSheets/googleSheets.node", "nodes/GoogleSheets/googleSheetsTrigger.node"],
+    "class_name": ["GoogleSheets"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "credential_id",
+        "type": "authentication",
+        "default": "",
+        "displayName": "Credential to connect with",
+        "typeOptions": {},
+        "isExpression": false
+      },
+      {
+        "name": "resource",
+        "type": "options",
+        "default": "spreadsheet",
+        "options": [
+          { "name": "Document", "value": "spreadsheet" },
+          { "name": "Sheet Within Document", "value": "sheet" }
+        ],
+        "required": true,
+        "displayName": "Resource"
+      },
+      {
+        "name": "operation",
+        "type": "options",
+        "default": "read",
+        "options": [
+          { "name": "Append or Update Row", "value": "appendOrUpdate", "action": "Append or update a row" },
+          { "name": "Append Row", "value": "append", "action": "Append a row" },
+          { "name": "Clear", "value": "clear", "action": "Clear a sheet" },
+          { "name": "Create", "value": "create", "action": "Create a sheet" },
+          { "name": "Delete", "value": "delete", "action": "Delete a sheet" },
+          { "name": "Delete Rows or Columns", "value": "deleteRows", "action": "Delete rows or columns" },
+          { "name": "Get Many Rows", "value": "read", "action": "Get many rows" },
+          { "name": "Get Row", "value": "get", "action": "Get a row" },
+          { "name": "Update Row", "value": "update", "action": "Update a row" }
+        ],
+        "required": true,
+        "displayName": "Operation",
+        "displayOptions": { "show": { "resource": ["sheet"] } }
+      },
+      {
+        "name": "documentId",
+        "type": "resourceLocator",
+        "default": { "mode": "list", "value": "" },
+        "required": true,
+        "displayName": "Document",
+        "description": "The Google Sheets Document to use. Choose from the list, or specify by ID."
+      },
+      {
+        "name": "sheetName",
+        "type": "resourceLocator",
+        "default": { "mode": "list", "value": "" },
+        "required": true,
+        "displayName": "Sheet",
+        "displayOptions": { "show": { "resource": ["sheet"] } }
+      },
+      {
+        "name": "filtersUI",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Filters",
+        "options": [
+          {
+            "name": "values",
+            "values": [
+              { "name": "lookupColumn", "type": "string", "default": "", "displayName": "Lookup Column" },
+              { "name": "lookupValue", "type": "string", "default": "", "displayName": "Lookup Value" }
+            ],
+            "displayName": "Filter",
+            "typeOptions": { "multipleValueButtonText": "Add Filter" }
+          }
+        ],
+        "displayOptions": { "show": { "operation": ["get", "update"] } }
+      },
+      {
+        "name": "fieldsUi",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Columns",
+        "options": [
+          {
+            "name": "fieldValues",
+            "values": [
+              { "name": "fieldId", "type": "string", "default": "", "displayName": "Column", "description": "Column header" },
+              { "name": "fieldValue", "type": "string", "default": "", "displayName": "Value" }
+            ],
+            "displayName": "Column",
+            "typeOptions": { "multipleValueButtonText": "Add Column" }
+          }
+        ],
+        "typeOptions": { "multipleValues": true },
+        "displayOptions": { "show": { "operation": ["append", "appendOrUpdate", "update"] } }
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "options": [
+          { "name": "continue", "type": "boolean", "default": false, "displayName": "Continue If Empty" },
+          { "name": "valueInputMode", "type": "options", "default": "USER_ENTERED",
+            "options": [
+              { "name": "User Entered", "value": "USER_ENTERED" },
+              { "name": "Raw", "value": "RAW" }
+            ],
+            "displayName": "Value Input Mode"
+          },
+          { "name": "valueRenderMode", "type": "options", "default": "UNFORMATTED_VALUE",
+            "options": [
+              { "name": "Formatted Value", "value": "FORMATTED_VALUE" },
+              { "name": "Formula", "value": "FORMULA" },
+              { "name": "Unformatted Value", "value": "UNFORMATTED_VALUE" }
+            ],
+            "displayName": "Value Render Mode"
+          }
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "name": "event",
+        "type": "options",
+        "default": "rowAdded",
+        "options": [
+          { "name": "Row Added", "value": "rowAdded" },
+          { "name": "Row Updated", "value": "rowUpdate" },
+          { "name": "Row Added or Updated", "value": "anyUpdate" }
+        ],
+        "displayName": "Trigger On"
+      },
+      {
+        "name": "documentId",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "displayName": "Document ID"
+      },
+      {
+        "name": "sheetName",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "displayName": "Sheet Name"
+      },
+      {
+        "name": "pollTimes",
+        "type": "fixedCollection",
+        "default": { "item": [{ "mode": "everyMinute" }] },
+        "displayName": "Poll Times",
+        "options": [
+          {
+            "name": "item",
+            "values": [
+              {
+                "name": "mode",
+                "type": "options",
+                "default": "everyMinute",
+                "options": [
+                  { "name": "Every Minute", "value": "everyMinute" },
+                  { "name": "Every Hour", "value": "everyHour" },
+                  { "name": "Every Day", "value": "everyDay" },
+                  { "name": "Every Week", "value": "everyWeek" },
+                  { "name": "Custom", "value": "custom" }
+                ],
+                "displayName": "Mode"
+              }
+            ],
+            "displayName": "Time"
+          }
+        ]
+      }
+    ],
+    "execution_endpoint": "https://sheets.googleapis.com/v4",
+    "credential_endpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "scope": ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file"],
+    "oauth2": true,
+    "apikey": false,
+    "category_name": "Data & Storage"
+  },
+  {
+    "id": 10,
+    "type": "MAILCHIMP",
+    "name": "Mailchimp",
+    "category_id": 2,
+    "version": 1,
+    "description": "Add this node to your workflow",
+    "icon": "mailchimp.svg",
+    "class_path": ["nodes/Mailchimp/mailchimpNode.node", "nodes/Mailchimp/mailchimpTrigger.node"],
+    "class_name": ["MailChimp"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "credential_id",
+        "type": "authentication",
+        "default": "",
+        "displayName": "Authentication",
+        "typeOptions": {},
+        "isExpression": false
+      },
+      {
+        "name": "resource",
+        "type": "options",
+        "default": "member",
+        "options": [
+          { "name": "Campaign", "value": "campaign" },
+          { "name": "List Group", "value": "listGroup" },
+          { "name": "Member", "value": "member" },
+          { "name": "Member Tag", "value": "memberTag" }
+        ],
+        "required": true,
+        "displayName": "Resource"
+      },
+      {
+        "name": "operation",
+        "type": "options",
+        "default": "create",
+        "options": [
+          { "name": "Create", "value": "create", "action": "Create a member", "description": "Create a new member on list" },
+          { "name": "Delete", "value": "delete", "action": "Delete a member", "description": "Delete a member on list" },
+          { "name": "Get", "value": "get", "action": "Get a member", "description": "Get a member on list" },
+          { "name": "Get Many", "value": "getAll", "action": "Get many members", "description": "Get many members on a list" },
+          { "name": "Update", "value": "update", "action": "Update a member", "description": "Update a new member on list" }
+        ],
+        "required": true,
+        "displayName": "Operation",
+        "displayOptions": { "show": { "resource": ["member"] } }
+      },
+      {
+        "name": "operation",
+        "type": "options",
+        "default": "create",
+        "options": [
+          { "name": "Create", "value": "create", "action": "Create a member tag", "description": "Add tags from a list member" },
+          { "name": "Delete", "value": "delete", "action": "Delete a member tag", "description": "Remove tags from a list member" }
+        ],
+        "required": true,
+        "displayName": "Operation",
+        "displayOptions": { "show": { "resource": ["memberTag"] } }
+      },
+      {
+        "name": "operation",
+        "type": "options",
+        "default": "getAll",
+        "options": [{ "name": "Get Many", "value": "getAll", "action": "Get many list groups" }],
+        "required": true,
+        "displayName": "Operation",
+        "displayOptions": { "show": { "resource": ["listGroup"] } }
+      },
+      {
+        "name": "operation",
+        "type": "options",
+        "default": "getAll",
+        "options": [
+          { "name": "Get Many", "value": "getAll", "action": "Get many campaigns" },
+          { "name": "Get", "value": "get", "action": "Get a campaign" },
+          { "name": "Send", "value": "send", "action": "Send a campaign" },
+          { "name": "Resend", "value": "resend", "action": "Resend a campaign" },
+          { "name": "Replicate", "value": "replicate", "action": "Replicate a campaign" },
+          { "name": "Delete", "value": "delete", "action": "Delete a campaign" }
+        ],
+        "required": true,
+        "displayName": "Operation",
+        "displayOptions": { "show": { "resource": ["campaign"] } }
+      },
+      {
+        "name": "list",
+        "type": "options",
+        "default": "",
+        "options": [],
+        "required": true,
+        "description": "List of lists. Choose from the list, or specify an ID using an expression.",
+        "displayName": "List Name or ID",
+        "displayOptions": { "show": { "resource": ["member"], "operation": ["create"] } }
+      },
+      {
+        "name": "email",
+        "type": "email",
+        "default": "",
+        "required": true,
+        "isRequired": true,
+        "description": "Email address for a subscriber",
+        "displayName": "Email",
+        "placeholder": "name@email.com",
+        "displayOptions": { "show": { "resource": ["member"], "operation": ["create"] } }
+      },
+      {
+        "name": "status",
+        "type": "options",
+        "default": "",
+        "options": [
+          { "name": "Cleaned", "value": "cleaned" },
+          { "name": "Pending", "value": "pending" },
+          { "name": "Subscribed", "value": "subscribed" },
+          { "name": "Transactional", "value": "transactional" },
+          { "name": "Unsubscribed", "value": "unsubscribed" }
+        ],
+        "required": true,
+        "description": "Subscriber's current status",
+        "displayName": "Status",
+        "displayOptions": { "show": { "resource": ["member"], "operation": ["create"] } }
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "options": [
+          { "name": "emailType", "type": "options", "default": "", "options": [{ "name": "HTML", "value": "html" }, { "name": "Text", "value": "text" }], "displayName": "Email Type" },
+          { "name": "language", "type": "string", "default": "", "displayName": "Language" },
+          { "name": "tags", "type": "string", "default": "", "displayName": "Tags" },
+          { "name": "vip", "type": "boolean", "default": false, "displayName": "Vip" }
+        ],
+        "displayName": "Options",
+        "placeholder": "Add option",
+        "displayOptions": { "show": { "resource": ["member"], "operation": ["create"] } }
+      },
+      {
+        "name": "campaignId",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "isRequired": true,
+        "displayName": "Campaign ID",
+        "displayOptions": { "show": { "resource": ["campaign"], "operation": ["send", "get", "delete", "replicate", "resend"] } }
+      },
+      {
+        "name": "returnAll",
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to return all results or only up to a given limit",
+        "displayName": "Return All",
+        "displayOptions": { "show": { "resource": ["member", "campaign", "listGroup"], "operation": ["getAll"] } }
+      }
+    ],
+    "triggers": [
+      {
+        "name": "authentication",
+        "type": "options",
+        "default": "apiKey",
+        "options": [
+          { "name": "API Key", "value": "apiKey" },
+          { "name": "OAuth2", "value": "oAuth2" }
+        ],
+        "displayName": "Authentication"
+      },
+      {
+        "name": "list",
+        "type": "options",
+        "default": "",
+        "options": [],
+        "description": "The list that is gonna fire the event.",
+        "displayName": "List Name or ID"
+      },
+      {
+        "name": "events",
+        "type": "multiOptions",
+        "default": [],
+        "options": [
+          { "name": "Campaign Sent", "value": "campaign" },
+          { "name": "Cleaned", "value": "cleaned" },
+          { "name": "Email Address Updated", "value": "upemail" },
+          { "name": "Profile Updated", "value": "profile" },
+          { "name": "Subscribe", "value": "subscribe" },
+          { "name": "Unsubscribe", "value": "unsubscribe" }
+        ],
+        "required": true,
+        "displayName": "Events"
+      },
+      {
+        "name": "sources",
+        "type": "multiOptions",
+        "default": [],
+        "options": [
+          { "name": "User", "value": "user" },
+          { "name": "Admin", "value": "admin" },
+          { "name": "API", "value": "api" }
+        ],
+        "required": true,
+        "displayName": "Sources"
+      }
+    ],
+    "execution_endpoint": "https://{{dc}}.api.mailchimp.com/3.0",
+    "credential_endpoint": "https://login.mailchimp.com/oauth2/authorize",
+    "token_url": "https://login.mailchimp.com/oauth2/token",
+    "enable_action_urls": true,
+    "action_urls": [
+      { "url": "/campaigns", "method": "GET", "resource": "campaign", "operation": "getAll" },
+      { "url": "/campaigns/{{campaignId}}", "method": "GET", "resource": "campaign", "operation": "get" },
+      { "url": "campaigns/{{campaignId}}/actions/send", "method": "POST", "resource": "campaign", "operation": "send" }
+    ],
+    "apikey_headers": { "Content-Type": "application/json", "Authorization": "Basic {{token}}" },
+    "apikey_form_properties": [
+      { "name": "api_key", "type": "string", "default": "", "isRequired": true, "displayName": "API Key", "typeOptions": {}, "isExpression": false }
+    ],
+    "apikey_test_endpoint": "https://{{dc}}.api.mailchimp.com/3.0/ping",
+    "apikey_test_method": "GET",
+    "metadata_endpoint": "https://login.mailchimp.com/oauth2/metadata",
+    "oauth2": true,
+    "apikey": true,
+    "oauth_headers": { "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+    "category_name": "Connect an App"
+  },
+  {
+    "id": 11,
+    "type": "MERGE",
+    "name": "Merge",
+    "category_id": 1,
+    "version": 3,
+    "description": "Merges data of multiple streams once data from both is available",
+    "icon": "merge.svg",
+    "class_path": ["nodes/Merge/merge.node"],
+    "class_name": ["Merge"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "mode",
+        "type": "options",
+        "default": "append",
+        "options": [
+          { "name": "Append", "value": "append", "description": "All items of input 1, then all items of input 2" },
+          { "name": "Combine", "value": "combine", "description": "Combine items based on a field or position" },
+          { "name": "Choose Branch", "value": "chooseBranch", "description": "Output items of a specific branch" },
+          { "name": "SQL Query", "value": "sqlQuery", "description": "Query both inputs with SQL" }
+        ],
+        "required": true,
+        "displayName": "Mode"
+      },
+      {
+        "name": "joinMode",
+        "type": "options",
+        "default": "keepMatches",
+        "options": [
+          { "name": "Inner Join (Keep Matches)", "value": "keepMatches" },
+          { "name": "Left Join (Keep Non-Matches of Input 1)", "value": "keepNonMatches" },
+          { "name": "Full Outer Join (Keep Everything)", "value": "keepEverything" },
+          { "name": "Enrich Input 1", "value": "enrichInput1" },
+          { "name": "Enrich Input 2", "value": "enrichInput2" }
+        ],
+        "displayName": "Join Mode",
+        "displayOptions": { "show": { "mode": ["combine"] } }
+      },
+      {
+        "name": "mergeByFields",
+        "type": "fixedCollection",
+        "default": { "values": [{ "field1": "", "field2": "" }] },
+        "displayName": "Fields to Match",
+        "options": [
+          {
+            "name": "values",
+            "values": [
+              { "name": "field1", "type": "string", "default": "", "displayName": "Input 1 Field" },
+              { "name": "field2", "type": "string", "default": "", "displayName": "Input 2 Field" }
+            ],
+            "displayName": "Field",
+            "typeOptions": { "multipleValueButtonText": "Add Fields to Match" }
+          }
+        ],
+        "typeOptions": { "multipleValues": true },
+        "displayOptions": { "show": { "mode": ["combine"], "joinMode": ["keepMatches", "keepNonMatches", "keepEverything", "enrichInput1", "enrichInput2"] } }
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
+  },
+  {
+    "id": 12,
+    "type": "SPLIT_IN_BATCHES",
+    "name": "Split In Batches",
+    "category_id": 1,
+    "version": 3,
+    "description": "Split data into batches and process each batch",
+    "icon": "splitInBatches.svg",
+    "class_path": ["nodes/SplitInBatches/splitInBatches.node"],
+    "class_name": ["SplitInBatches"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "batchSize",
+        "type": "number",
+        "default": 10,
+        "required": true,
+        "displayName": "Batch Size",
+        "description": "The number of items to include in each batch"
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "options": [
+          { "name": "reset", "type": "boolean", "default": false, "displayName": "Reset" }
+        ]
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
+  },
+  {
+    "id": 13,
+    "type": "WAIT",
+    "name": "Wait",
+    "category_id": 1,
+    "version": 1,
+    "description": "Wait before continuing with execution or resume on webhook call",
+    "icon": "wait.svg",
+    "class_path": ["nodes/Wait/wait.node"],
+    "class_name": ["Wait"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "resume",
+        "type": "options",
+        "default": "timeInterval",
+        "options": [
+          { "name": "After Time Interval", "value": "timeInterval" },
+          { "name": "At Specified Time", "value": "specificTime" },
+          { "name": "On Webhook Call", "value": "webhook" },
+          { "name": "On Form Submitted", "value": "form" }
+        ],
+        "displayName": "Resume"
+      },
+      {
+        "name": "amount",
+        "type": "number",
+        "default": 1,
+        "displayName": "Wait Amount",
+        "displayOptions": { "show": { "resume": ["timeInterval"] } }
+      },
+      {
+        "name": "unit",
+        "type": "options",
+        "default": "hours",
+        "options": [
+          { "name": "Seconds", "value": "seconds" },
+          { "name": "Minutes", "value": "minutes" },
+          { "name": "Hours", "value": "hours" },
+          { "name": "Days", "value": "days" }
+        ],
+        "displayName": "Wait Unit",
+        "displayOptions": { "show": { "resume": ["timeInterval"] } }
+      },
+      {
+        "name": "dateTime",
+        "type": "dateTime",
+        "default": "",
+        "displayName": "Date and Time",
+        "displayOptions": { "show": { "resume": ["specificTime"] } }
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
+  },
+  {
+    "id": 14,
+    "type": "FILTER",
+    "name": "Filter",
+    "category_id": 1,
+    "version": 1,
+    "description": "Removes items matching a condition",
+    "icon": "filter.svg",
+    "class_path": ["nodes/Filter/filter.node"],
+    "class_name": ["Filter"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "conditions",
+        "type": "filter",
+        "default": {},
+        "displayName": "Conditions",
+        "typeOptions": { "filter": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" } }
+      },
+      {
+        "name": "combineConditions",
+        "type": "options",
+        "default": "AND",
+        "options": [
+          { "name": "AND", "value": "AND" },
+          { "name": "OR", "value": "OR" }
+        ],
+        "displayName": "Combine Conditions"
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": false,
+    "category_name": "Core Nodes"
+  },
+  {
+    "id": 15,
+    "type": "POSTGRES",
+    "name": "Postgres",
+    "category_id": 3,
+    "version": 2,
+    "description": "Get, add and update data in Postgres",
+    "icon": "postgres.svg",
+    "class_path": ["nodes/Postgres/postgres.node"],
+    "class_name": ["Postgres"],
+    "conditional": [],
+    "actions": [
+      {
+        "name": "credential_id",
+        "type": "authentication",
+        "default": "",
+        "displayName": "Credential to connect with",
+        "typeOptions": {},
+        "isExpression": false
+      },
+      {
+        "name": "operation",
+        "type": "options",
+        "default": "executeQuery",
+        "options": [
+          { "name": "Delete", "value": "delete", "action": "Delete rows" },
+          { "name": "Execute Query", "value": "executeQuery", "action": "Execute a SQL query" },
+          { "name": "Insert", "value": "insert", "action": "Insert rows" },
+          { "name": "Insert or Update", "value": "upsert", "action": "Insert or update rows" },
+          { "name": "Select", "value": "select", "action": "Select rows" },
+          { "name": "Update", "value": "update", "action": "Update rows" }
+        ],
+        "required": true,
+        "displayName": "Operation"
+      },
+      {
+        "name": "query",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "displayName": "Query",
+        "typeOptions": { "editor": "sqlEditor" },
+        "displayOptions": { "show": { "operation": ["executeQuery"] } }
+      },
+      {
+        "name": "schema",
+        "type": "string",
+        "default": "public",
+        "displayName": "Schema",
+        "displayOptions": { "show": { "operation": ["delete", "insert", "upsert", "select", "update"] } }
+      },
+      {
+        "name": "table",
+        "type": "string",
+        "default": "",
+        "required": true,
+        "displayName": "Table",
+        "displayOptions": { "show": { "operation": ["delete", "insert", "upsert", "select", "update"] } }
+      },
+      {
+        "name": "columns",
+        "type": "string",
+        "default": "",
+        "displayName": "Columns",
+        "description": "Comma-separated list of columns",
+        "displayOptions": { "show": { "operation": ["insert", "upsert", "update"] } }
+      },
+      {
+        "name": "where",
+        "type": "fixedCollection",
+        "default": {},
+        "displayName": "Where",
+        "options": [
+          {
+            "name": "values",
+            "values": [
+              { "name": "column", "type": "string", "default": "", "displayName": "Column" },
+              { "name": "value", "type": "string", "default": "", "displayName": "Value" }
+            ],
+            "displayName": "Condition",
+            "typeOptions": { "multipleValueButtonText": "Add Condition" }
+          }
+        ],
+        "displayOptions": { "show": { "operation": ["delete", "select", "update"] } }
+      },
+      {
+        "name": "options",
+        "type": "collection",
+        "default": {},
+        "displayName": "Options",
+        "options": [
+          { "name": "queryBatching", "type": "options", "default": "single",
+            "options": [
+              { "name": "Single Query", "value": "single" },
+              { "name": "Independently", "value": "independently" },
+              { "name": "Transaction", "value": "transaction" }
+            ],
+            "displayName": "Query Batching"
+          },
+          { "name": "outputLargeNumbers", "type": "boolean", "default": false, "displayName": "Output Large-Format Numbers as Text" }
+        ]
+      }
+    ],
+    "triggers": [],
+    "execution_endpoint": "",
+    "credential_endpoint": "",
+    "oauth2": false,
+    "apikey": true,
+    "apikey_form_properties": [
+      { "name": "host", "type": "string", "default": "localhost", "isRequired": true, "displayName": "Host" },
+      { "name": "database", "type": "string", "default": "postgres", "isRequired": true, "displayName": "Database" },
+      { "name": "user", "type": "string", "default": "postgres", "isRequired": true, "displayName": "User" },
+      { "name": "password", "type": "string", "default": "", "isRequired": false, "displayName": "Password", "typeOptions": { "password": true } },
+      { "name": "port", "type": "number", "default": 5432, "isRequired": true, "displayName": "Port" },
+      { "name": "ssl", "type": "options", "default": "disable", "options": [
+          { "name": "Allow", "value": "allow" },
+          { "name": "Disable", "value": "disable" },
+          { "name": "Require", "value": "require" }
+        ],
+        "displayName": "SSL"
+      }
+    ],
+    "category_name": "Data & Storage"
   }
 ]

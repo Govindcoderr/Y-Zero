@@ -140,6 +140,7 @@
 #         return results
 
 # engines/node_search_engine.py
+
 """
 NodeSearchEngine — Python port inspired by n8n's node-search-engine.ts
 
@@ -159,10 +160,8 @@ from difflib import SequenceMatcher
 from typing import List, Optional, Dict, Any, Tuple
 from ..types.nodes import NodeSearchResult, NodeDetails
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# NODE_SEARCH_KEYS  (mirrors n8n exactly)
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# NODE_SEARCH_KEYS  (mirrors n8n exactly)#
 NODE_SEARCH_KEYS = [
     {"key": "displayName", "weight": 1.5},
     {"key": "name",        "weight": 1.3},
@@ -170,10 +169,8 @@ NODE_SEARCH_KEYS = [
     {"key": "description", "weight": 0.7},
 ]
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# sublimeSearch  (Python port of @n8n/utils sublimeSearch)
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# sublimeSearch  (Python port of @n8n/utils sublimeSearch)#
 def _get_field_value(node: Dict[str, Any], key: str) -> str:
     """Resolve dotted keys like 'codex.alias'. Returns joined string for lists."""
     parts = key.split(".")
@@ -232,10 +229,8 @@ def sublime_search(
     scored.sort(key=lambda x: x[0], reverse=True)
     return scored
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# dedupeNodes  (port of n8n dedupeNodes — keeps latest version)
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# dedupeNodes  (port of n8n dedupeNodes — keeps latest version)#
 def _get_latest_version(node: Dict[str, Any]) -> int:
     v = node.get("version", 1)
     return max(v) if isinstance(v, list) else int(v)
@@ -251,10 +246,8 @@ def dedupe_nodes(nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             cache[name] = node
     return list(cache.values())
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# NodeSearchEngine
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# NodeSearchEngine#
 class NodeSearchEngine:
 
     def __init__(self, node_types: List[Dict[str, Any]]):

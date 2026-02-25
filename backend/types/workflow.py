@@ -63,15 +63,17 @@
 #     def get_node_by_name(self, name: str) -> Optional[WorkflowNode]:
 #         return next((node for node in self.nodes if node.name == name), None)
 
+
+
+
+
 # types/workflow.py
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
-
-# ─────────────────────────────────────────────────────────────────────────────
+#
 # NODE_TYPE_MAP
 # Maps node "name" (which IS the value) to its output-format "type" field
-# name == value == expressionExecutionName  (all the same string)
-# ─────────────────────────────────────────────────────────────────────────────
+# name == value == expressionExecutionName  (all the same string)#
 NODE_TYPE_MAP: Dict[str, str] = {
     # triggers
     "MANUAL":         "trigger",
@@ -101,10 +103,8 @@ _OPERATION_OVERRIDE: Dict[str, str] = {
     "MANUAL": "2",
 }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# WorkflowNode
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# WorkflowNode#
 @dataclass
 class WorkflowNode:
     id: str
@@ -177,10 +177,8 @@ class WorkflowNode:
 
         return base
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# WorkflowEdge
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# WorkflowEdge#
 @dataclass
 class WorkflowEdge:
     from_node_id: str
@@ -189,10 +187,8 @@ class WorkflowEdge:
     def to_output_dict(self) -> Dict[str, Any]:
         return {"from_node": self.from_node_id, "to_node": self.to_node_id}
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# WorkflowConnection  (internal — builder uses node names, not UUIDs)
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# WorkflowConnection  (internal — builder uses node names, not UUIDs)#
 @dataclass
 class WorkflowConnection:
     node:  str    # target node NAME
@@ -202,10 +198,8 @@ class WorkflowConnection:
     def to_dict(self) -> Dict[str, Any]:
         return {"node": self.node, "type": self.type, "index": self.index}
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SimpleWorkflow
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# SimpleWorkflow#
 @dataclass
 class SimpleWorkflow:
     name:        str
