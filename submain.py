@@ -12,6 +12,7 @@ Key fixes applied:
 """
 
 from langgraph.graph import StateGraph, END
+from backend.agents.greeter import GreeterAgent
 from llm_provider import get_llm, get_llm_no_tools
 from typing import Dict, Any, Optional
 from backend.state.workflow_state import WorkflowState, create_initial_state
@@ -46,6 +47,7 @@ class WorkflowBuilderOrchestrator:
         print(f"✅ Node search engine initialized with {len(node_types)} node types")
 
         # Agents that don't depend on per-request workflow state
+        self.greeter = GreeterAgent(self.llm_fast)  
         self.supervisor = SupervisorAgent(self.llm_fast)
         self.discovery = DiscoveryAgent(self.llm_fast)
 
@@ -85,13 +87,26 @@ class WorkflowBuilderOrchestrator:
 
         graph = StateGraph(WorkflowState)
 
+        graph.add_node("greeter", self._greeter_node)       # NEW: 1st entry point
         graph.add_node("supervisor", self._supervisor_node)
         graph.add_node("discovery", self._discovery_node)
         graph.add_node("builder", self._builder_node)
         graph.add_node("configurator", self._configurator_node)
         graph.add_node("responder", self._responder_node)
 
-        graph.set_entry_point("supervisor")
+        graph.set_entry_point("greeter")
+
+         # ── Greeter routing ────────────────────────────────────────────────────
+        # If should_proceed=True → go to supervisor (normal workflow pipeline)
+        # If should_proceed=False → END (greeter already responded)
+        graph.add_conditional_edges(
+            "greeter",
+            lambda state: "supervisor" if state.get("greeter_proceed", False) else END,
+            {
+                "supervisor": "supervisor",
+                END: END,
+            },
+        )
 
         # Route from supervisor based on next_agent field in state
         graph.add_conditional_edges(
@@ -116,6 +131,39 @@ class WorkflowBuilderOrchestrator:
     # -------------------------------------------------------------------------
     # Graph node implementations
     # -------------------------------------------------------------------------
+
+    
+    async def _greeter_node(self, state: WorkflowState) -> Dict[str, Any]:
+        """
+        FIRST agent in the pipeline.
+        Detects intent and either:
+          - Responds directly (greetings / guide / out-of-scope) → END
+          - Passes control to supervisor → workflow pipeline
+        """
+        user_message = self._extract_last_user_message(state)
+        print(f"🤝 Greeter agent checking: {user_message[:60]}...")
+
+        result = await self.greeter.handle(user_message)
+        intent = result["intent"]
+        should_proceed = result["should_proceed"]
+
+        if should_proceed:
+            # Real workflow request → continue pipeline
+            print(f"   → Intent: {intent} — proceeding to workflow pipeline")
+            return {
+                "greeter_proceed": True,
+                "greeter_intent": intent,
+            }
+        else:
+            # Greeting / Guide / Out-of-scope → respond and stop
+            reply = result["response"]
+            print(f"   → Intent: {intent} — greeter responding, pipeline stopped")
+            return {
+                "greeter_proceed": False,
+                "greeter_intent": intent,
+                "messages": [{"role": "assistant", "content": reply}],
+            }
+
 
     async def _supervisor_node(self, state: WorkflowState) -> Dict[str, Any]:
         """Decide which agent acts next"""
@@ -228,14 +276,28 @@ class WorkflowBuilderOrchestrator:
     # Helpers
     # -------------------------------------------------------------------------
 
+    # def _extract_last_user_message(self, state: Dict[str, Any]) -> str:
+    #     messages = state.get("messages", [])
+    #     if not messages:
+    #         return ""
+    #     last = messages[-1]
+    #     if isinstance(last, dict):
+    #         return last.get("content") or last.get("text") or ""
+    #     return getattr(last, "content", None) or str(last)
+
     def _extract_last_user_message(self, state: Dict[str, Any]) -> str:
         messages = state.get("messages", [])
         if not messages:
             return ""
-        last = messages[-1]
-        if isinstance(last, dict):
-            return last.get("content") or last.get("text") or ""
-        return getattr(last, "content", None) or str(last)
+        # Walk backwards to find last user message
+        for msg in reversed(messages):
+            if isinstance(msg, dict):
+                if msg.get("role") == "user":
+                    return msg.get("content", "")
+            else:
+                if getattr(msg, "type", "") == "human":
+                    return getattr(msg, "content", "")
+        return ""
 
     async def process_message(
         self, user_message: str, state: Optional[WorkflowState] = None

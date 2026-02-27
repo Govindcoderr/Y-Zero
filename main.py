@@ -259,6 +259,41 @@ class HealthResponse(BaseModel):
     message: str
 
 
+# Helper: extract last assistant message from LangGraph state   
+
+def extract_assistant_message(result: dict, fallback: str = "Done") -> str:
+    """
+    Robustly extract the last assistant/AI message from LangGraph state.
+
+    LangGraph's add_messages reducer can store messages as:
+      - dict:       {"role": "assistant", "content": "..."}
+      - AIMessage:  msg.type == "ai", msg.content == "..."
+      - HumanMessage, SystemMessage (skip these)
+    
+    We walk the list in reverse and return the first assistant reply found.
+    """
+    messages = result.get("messages", [])
+
+    for msg in reversed(messages):
+        # ── dict format ───────────────────────────────────────────
+        if isinstance(msg, dict):
+            role = msg.get("role", "")
+            if role in ("assistant", "ai"):
+                content = msg.get("content", "").strip()
+                if content:
+                    return content
+
+        # ── LangChain message object format ───────────────────────
+        else:
+            msg_type = getattr(msg, "type", "")
+            if msg_type in ("ai", "assistant"):
+                content = getattr(msg, "content", "").strip()
+                if content:
+                    return content
+
+    return fallback
+
+
 # ------------------------------------------------------------------
 # Routes
 # ------------------------------------------------------------------
@@ -283,6 +318,22 @@ async def build_workflow(request: WorkflowRequest):
     try:
         result = await orchestrator.process_message(request.message)
 
+
+        # ── Check if greeter short-circuited the pipeline ──────────
+        greeter_proceed = result.get("greeter_proceed", True)
+
+        if not greeter_proceed:
+            # Greeter handled it — no workflow built, just return the reply
+            reply = extract_assistant_message(result, fallback="Hello! How can I help you?")
+            print(f"🤝 Greeter response returned to frontend: {reply[:80]}...")
+            return {
+                "name": "Chat",
+                "nodes": [],
+                "edges": [],
+                "response": reply,
+                "session_id": request.session_id or "default",
+            }
+
         # Get the SimpleWorkflow object from state
         workflow = result.get("workflow_json")
         if workflow is None:
@@ -298,14 +349,18 @@ async def build_workflow(request: WorkflowRequest):
             output = {"name": getattr(workflow, 'name', 'Workflow'), "nodes": [], "edges": []}
 
         # Get last assistant message
-        assistant_message = "Workflow built successfully"
-        for msg in reversed(result.get("messages", [])):
-            if isinstance(msg, dict) and msg.get("role") == "assistant":
-                assistant_message = msg.get("content", assistant_message)
-                break
-            elif hasattr(msg, "content") and getattr(msg, "type", "") == "ai":
-                assistant_message = msg.content
-                break
+        # assistant_message = "Workflow built successfully"
+        # for msg in reversed(result.get("messages", [])):
+        #     if isinstance(msg, dict) and msg.get("role") == "assistant":
+        #         assistant_message = msg.get("content", assistant_message)
+        #         break
+        #     elif hasattr(msg, "content") and getattr(msg, "type", "") == "ai":
+        #         assistant_message = msg.content
+        #         break
+
+        assistant_message = extract_assistant_message(
+            result, fallback="✅ Workflow built successfully"
+        )
 
         return {
             "name":       output["name"],

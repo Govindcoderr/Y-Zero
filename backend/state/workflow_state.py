@@ -22,6 +22,15 @@ class WorkflowState(TypedDict):
     # Core workflow - stored as a dict to be serializable by LangGraph
     workflow_json: SimpleWorkflow
 
+    # ── Greeter Agent fields (NEW) 
+    # True  → user sent a real workflow request → proceed to supervisor pipeline
+    # False → greeter handled the response (greeting/guide/out-of-scope) → END
+    greeter_proceed: bool
+
+    # Detected intent: GREETING | GUIDE_REQUEST | WORKFLOW_REQUEST | OUT_OF_SCOPE
+    greeter_intent: Optional[str]
+
+
     # Categorization
     categorization: Optional[PromptCategorization]
 
@@ -49,6 +58,11 @@ class WorkflowState(TypedDict):
 
 def create_initial_state() -> WorkflowState:
     return {
+        
+        # Greeter defaults (NEW)
+        "greeter_proceed": False,       # will be set by greeter node
+        "greeter_intent": None,         # will be set by greeter node
+
         "workflow_json": SimpleWorkflow(name="New Workflow"),
         "categorization": None,
         "best_practices": None,

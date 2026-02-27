@@ -61,6 +61,16 @@ with st.sidebar:
     ]:
         st.caption(f"• {ex}")
 
+# ── Chat History (conversation UI) ────────────────────────────────
+if st.session_state.history:
+    st.markdown("### 💬 Conversation")
+    for msg in st.session_state.history:
+        role = msg["role"]
+        content = msg["content"]
+        with st.chat_message(role):
+            st.markdown(content)
+    st.markdown("---")
+
 # ── Input ─────────────────────────────────────────────────────────
 user_input = st.text_area(
     "Describe your workflow:",
@@ -88,8 +98,10 @@ if st.button(" Build Workflow", type="primary", use_container_width=True):
                 st.rerun()
 
 # ── Results ───────────────────────────────────────────────────────
-if st.session_state.workflow_state:
+# Sirf tab dikhao agar actual nodes hain (greeter response pe nahi)
+if st.session_state.workflow_state and st.session_state.workflow_state.get("nodes"):
     wf = st.session_state.workflow_state
+    
     nodes = wf.get("nodes", [])
     edges = wf.get("edges", [])
 
