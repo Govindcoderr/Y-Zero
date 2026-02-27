@@ -14,6 +14,14 @@ class WorkflowTechnique(str, Enum):
     MONITORING = "monitoring"
     SCRAPING = "scraping"
     ENRICHMENT = "enrichment"
+    # Additional techniques for categorization manual labels
+    SCRAPING_AND_RESEARCH = "scraping_and_research"
+    TRIAGE = "triage"
+    CONTENT_GENERATION = "content_generation"
+    DOCUMENT_PROCESSING = "document_processing"
+    DATA_EXTRACTION = "data_extraction"
+    KNOWLEDGE_BASE = "knowledge_base"
+    HUMAN_IN_THE_LOOP = "human_in_the_loop"
 
 TECHNIQUE_DESCRIPTIONS = {
     WorkflowTechnique.SCHEDULING: "Running actions at specific times or intervals",
@@ -26,7 +34,16 @@ TECHNIQUE_DESCRIPTIONS = {
     WorkflowTechnique.MONITORING: "Checking service status and alerting",
     WorkflowTechnique.SCRAPING: "Extracting data from websites",
     WorkflowTechnique.ENRICHMENT: "Adding extra details to existing data",
+    # Additional descriptions for manual categorization labels
+    WorkflowTechnique.SCRAPING_AND_RESEARCH: "Extracting information from the web and conducting research",
+    WorkflowTechnique.TRIAGE: "Prioritizing tasks or issues based on certain criteria",
+    WorkflowTechnique.CONTENT_GENERATION: "Creating text, images, or other content using AI",
+    WorkflowTechnique.DOCUMENT_PROCESSING: "Extracting and processing information from documents",
+    WorkflowTechnique.DATA_EXTRACTION: "Pulling specific data points from larger datasets",
+    WorkflowTechnique.KNOWLEDGE_BASE: "Storing and retrieving information in a structured way",
+    WorkflowTechnique.HUMAN_IN_THE_LOOP: "Involving human judgment or input in the workflow"
 }
+
 
 @dataclass
 class PromptCategorization:
