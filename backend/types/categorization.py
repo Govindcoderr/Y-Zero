@@ -22,6 +22,7 @@ class WorkflowTechnique(str, Enum):
     DATA_EXTRACTION = "data_extraction"
     KNOWLEDGE_BASE = "knowledge_base"
     HUMAN_IN_THE_LOOP = "human_in_the_loop"
+    
 
 TECHNIQUE_DESCRIPTIONS = {
     WorkflowTechnique.SCHEDULING: "Running actions at specific times or intervals",

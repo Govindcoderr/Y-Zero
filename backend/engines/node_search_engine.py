@@ -142,7 +142,7 @@
 # engines/node_search_engine.py
 
 """
-NodeSearchEngine — Python port inspired by n8n's node-search-engine.ts
+NodeSearchEngine — search and resolve n8n node types for the Configurator agent.
 
 Node types: trigger | action | conditional  (no inputs/outputs fields)
 Node name = the "value" used directly in the output JSON (e.g. "HTTP REQUEST", "TELEGRAM")
@@ -159,8 +159,10 @@ from __future__ import annotations
 from difflib import SequenceMatcher
 from typing import List, Optional, Dict, Any, Tuple
 from ..types.nodes import NodeSearchResult, NodeDetails
+from ..utils.node_normalizer import normalize_nodes
+from ..types.workflow import register_node_types  # ← add this import 
 
-#
+
 # NODE_SEARCH_KEYS  (mirrors n8n exactly)#
 NODE_SEARCH_KEYS = [
     {"key": "displayName", "weight": 1.5},
@@ -246,17 +248,19 @@ def dedupe_nodes(nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             cache[name] = node
     return list(cache.values())
 
-#
+
 # NodeSearchEngine#
 class NodeSearchEngine:
 
     def __init__(self, node_types: List[Dict[str, Any]]):
         # Deduplicate — always keep latest version (n8n pattern)
+        node_types = normalize_nodes(node_types)  
         self.node_types = dedupe_nodes(node_types)
         # Fast lookup: name → node
         self._by_name: Dict[str, Dict[str, Any]] = {
             n.get("name", ""): n for n in self.node_types
         }
+        register_node_types(self.node_types)  # ← register nodes for workflow execution
 
     # ── searchByName ─────────────────────────────────────────────
     def search_by_name(self, query: str, limit: int = 5) -> List[NodeSearchResult]:

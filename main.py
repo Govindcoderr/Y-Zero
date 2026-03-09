@@ -173,19 +173,32 @@ import json
 import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
+import httpx
+from backend.utils.node_loader import fetch_nodes_from_api
+from backend.utils.node_normalizer import load_and_normalize_nodes
+
 
 load_dotenv()
 
 from submain import WorkflowBuilderOrchestrator
 
-# Load node types
-try:
-    with open("node_types.json", "r", encoding="utf-8") as f:
-        NODE_TYPES = json.load(f)
-    print(f"✅ Loaded {len(NODE_TYPES)} node types")
-except FileNotFoundError:
-    print("⚠️  node_types.json not found, using empty list")
-    NODE_TYPES = []
+# # Load node types
+# try:
+#     with open("node_types.json", "r", encoding="utf-8") as f:
+#         NODE_TYPES = json.load(f)
+#     print(f"✅ Loaded {len(NODE_TYPES)} node types")
+# except FileNotFoundError:
+#     print("⚠️  node_types.json not found, using empty list")
+#     NODE_TYPES = []
+
+# BAAD MEIN (naya code):
+# from backend.utils.node_normalizer import load_and_normalize_nodes
+
+# NODE_TYPES = load_and_normalize_nodes()
+# print(f"✅ Loaded {len(NODE_TYPES)} node types")
+
+
+
 
 orchestrator: Optional[WorkflowBuilderOrchestrator] = None
 
@@ -193,6 +206,21 @@ orchestrator: Optional[WorkflowBuilderOrchestrator] = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global orchestrator
+
+        # Nodes load karo — API first, local file fallback
+    nodes_api_url = os.getenv("NODES_API_URL", "").strip()
+
+    if nodes_api_url:
+        NODE_TYPES = await fetch_nodes_from_api(nodes_api_url)
+        if not NODE_TYPES:
+            print("⚠️  API returned 0 nodes — falling back to local file")
+            NODE_TYPES = load_and_normalize_nodes()
+    else:
+        NODE_TYPES = load_and_normalize_nodes()
+
+    if not NODE_TYPES:
+        print("⚠️  WARNING: No nodes loaded. Set NODES_API_URL in .env")
+
     try:
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:

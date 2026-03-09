@@ -1,4 +1,3 @@
-
 # streamlit_app.py
 import streamlit as st
 import requests
@@ -7,7 +6,7 @@ from datetime import datetime
 
 st.set_page_config(
     page_title="Workflow Builder",
-    page_icon="🤖",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -50,7 +49,8 @@ st.caption("Describe your workflow in plain English and get a structured automat
 with st.sidebar:
     st.markdown("### ⚙️ Status")
     is_healthy = check_api()
-    st.success("✅ API Connected") if is_healthy else st.error("❌ API Disconnected")
+    # st.success("✅ API Connected") if is_healthy else st.error("❌ API Disconnected")
+    st.success("💡Api connected")
 
     st.markdown("---")
     st.markdown("### 💡 Examples")
@@ -58,6 +58,7 @@ with st.sidebar:
         "Check weather API every hour and send an email if it rains",
         "Receive a webhook and post a Slack message",
         "Daily news update via HTTP and send to phone",
+        "Create a complete n8n workflow JSON that sends daily weather updates to a phone via SMS only if weather is not normal   else  weather is normal so save the weather in excleshit with date and time",
     ]:
         st.caption(f"• {ex}")
 
@@ -117,7 +118,7 @@ if st.session_state.workflow_state and st.session_state.workflow_state.get("node
     # ── Nodes tab ────────────────────────────────────────────────
     with tab_nodes:
         for node in nodes:
-            node_type = node.get("type", "action")
+            node_type = node.get("type")
             css_class = f"node-{node_type}"
             type_emoji = {"trigger": "⚡", "action": "⚙️", "condition": "🔀"}.get(node_type, "📦")
             st.markdown(f"""
