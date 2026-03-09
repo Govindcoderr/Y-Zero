@@ -76,10 +76,18 @@ class WorkflowBuilderOrchestrator:
             connect_by_id,     # fallback - LLM uses UUIDs from add_node response
             validate_tool,     # call ONCE at the end
         ]
+        # configurator_tools = [ (old way with llm and search_engine passed in )
+        #     create_update_parameters_tool(self.llm, self.search_engine, workflow),
+        #     validate_tool,     # reuse same instance
+        # ]
+
+        # _create_request_tools mein configurator_tools update karo:
         configurator_tools = [
-            create_update_parameters_tool(self.llm, self.search_engine, workflow),
-            validate_tool,     # reuse same instance
+            create_update_parameters_tool(workflow),   # ← sirf workflow pass karo, llm aur search_engine nahi
+            validate_tool,
         ]
+
+
         return builder_tools, configurator_tools
 
     def _build_graph(self):
