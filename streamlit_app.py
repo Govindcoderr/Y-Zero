@@ -59,6 +59,7 @@ with st.sidebar:
         "Receive a webhook and post a Slack message",
         "Daily news update via HTTP and send to phone",
         "Create a complete n8n workflow JSON that sends daily weather updates to a phone via SMS only if weather is not normal   else  weather is normal so save the weather in excleshit with date and time",
+        "Automate 3D body model generation from images using SAM-3D & Google Sheets",
     ]:
         st.caption(f"• {ex}")
 

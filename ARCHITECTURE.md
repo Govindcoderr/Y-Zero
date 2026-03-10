@@ -47,8 +47,8 @@
 │  │  GET /health          → Health check                    │    │
 │  │  GET /node-types      → List node definitions           │    │
 │  │  POST /workflow       → Build workflow                  │    │
-│  │  GET /workflow/{id}   → Get workflow details            │    │
-│  │  WS /ws/workflow      → WebSocket real-time             │    │
+│  │  GET /workflow/{id}   → Get workflow details (stub)     │    │
+│  │  (WS /ws/workflow     → Optional future real-time)      │    │
 │  │                                                           │    │
 │  └────────────────────────┬─────────────────────────────────┘   │
 └─────────────────────────────┼────────────────────────────────────┘
@@ -138,9 +138,11 @@ USER REQUEST (Describe Workflow)
 ┌──────────────────────────┐
 │ LangGraph Execution      │
 ├──────────────────────────┤
-│ Entry: Supervisor Node   │
-│ ├─ Analyze user intent   │
-│ ├─ Route to next agent   │
+│ Entry: Greeter Node      │
+│ ├─ Classify user intent  │
+│ ├─ Short-circuit greeting/guide/out-of-scope
+│ ├─ If workflow intent: supervisor
+│ └─ Else: return assistant reply
 └──────────────┬───────────┘
                │
     ┌──────────┼──────────┐
@@ -280,9 +282,18 @@ Deployment:
 ---
 
 This architecture provides:
-✅ Separation of concerns
-✅ Scalability
-✅ Real-time capabilities
-✅ Easy deployment
-✅ Type safety
-✅ Modern tech stack
+✅ Separation of concerns (Greeter / Supervisor / Discovery / Builder / Configurator / Responder are distinct jobs)
+✅ Scalability (API + UI separated, LangGraph orchestrator for extending phases)
+✅ Real-time capabilities (Streamlit UI with status checks, optional websocket hooks in backend)
+✅ Easy deployment (FastAPI + Streamlit, .env-configurable LLM + node source)
+✅ Type safety (Pydantic models in `main.py`, `Backend/types`, and typed agents/state)
+✅ Modern tech stack (LangChain/Groq, LangGraph, n8n-style node graph, fuzzy search)
+
+Also this flow covers:
+- Intent gating before execution (greeter avoids wasted AI tasks)
+- Tool-bound workflow mutations (`add_node`,`connect_nodes`,`validate_workflow`)
+- Deterministic phase route by supervisor (prevents endless loops)
+- Rich state logging via coordination log for observability
+- Node resolution via `NodeSearchEngine` (fuzzy, exact and fallback)
+- Componentized future growth: persistence, RAG knowledge hub, secure auth
+
