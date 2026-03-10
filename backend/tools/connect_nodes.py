@@ -1,5 +1,3 @@
-
-
 # # tools/connect_nodes.py
 # from langchain_core.tools import tool
 # from typing import Annotated
@@ -55,6 +53,7 @@
 #         return f"Connected '{source_node.name}' → '{target_node.name}' ({connection_type})"
 
 #     return connect_nodes
+
 
 # tools/connect_nodes.py
 from langchain_core.tools import tool

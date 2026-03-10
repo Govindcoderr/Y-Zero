@@ -6,7 +6,7 @@ from datetime import datetime
 
 st.set_page_config(
     page_title="Workflow Builder",
-    page_icon="",
+    page_icon="♾️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -33,24 +33,24 @@ def build_workflow(message: str):
         r.raise_for_status()
         return r.json()
     except requests.exceptions.ConnectionError:
-        st.error("❌ Cannot connect to API. Run: `python main.py`")
+        st.error("⭕ Cannot connect to API. Run: `python main.py`")
     except requests.exceptions.Timeout:
         st.error("⏱️ Request timed out.")
     except Exception as e:
-        st.error(f"❌ {e}")
+        st.error(f"⭕ {e}")
     return None
 
 
 # ── Header ────────────────────────────────────────────────────────
-st.title("🤖 AI Workflow Builder")
+st.title(" AI Workflow Builder ♾️")
 st.caption("Describe your workflow in plain English and get a structured automation workflow.")
 
 # ── Sidebar ───────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Status")
     is_healthy = check_api()
-    # st.success("✅ API Connected") if is_healthy else st.error("❌ API Disconnected")
-    st.success("💡Api connected")
+    st.success(" ᯓ ✈︎ API Connected") if is_healthy else st.error("❌ API Disconnected")
+    # st.success("𐐘💥╾━╤デ╦︻ඞා")
 
     st.markdown("---")
     st.markdown("### 💡 Examples")
@@ -84,7 +84,7 @@ if st.button(" Build Workflow", type="primary", use_container_width=True):
     if not user_input.strip():
         st.warning("Please enter a workflow description")
     elif not is_healthy:
-        st.error("❌ API not available")
+        st.error("⭕ API not available")
     else:
         with st.spinner("🔄 Building workflow…"):
             result = build_workflow(user_input)

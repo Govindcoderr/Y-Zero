@@ -46,7 +46,7 @@ async def fetch_nodes_from_api(api_url: str = None) -> List[Dict[str, Any]]:
             return []
 
         normalized = normalize_nodes(raw_nodes)
-        print(f"⚠️ Fetched & normalized {len(normalized)} nodes from API")
+        print(f"♾️  Fetched & normalized {len(normalized)} nodes from API")
         return normalized
 
     except httpx.HTTPStatusError as e:

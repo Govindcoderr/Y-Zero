@@ -80,18 +80,31 @@ AVAILABLE NODES
   Conditionals (branch the flow):   {fmt(conds)}
 
 RULES — follow exactly, no exceptions:
-1. First call search_nodes if you are unsure which node to use.
-2. Add nodes with add_node using EXACT names from the list above.
-3. Connect EVERY consecutive node with connect_nodes_by_name.
-4. Call validate_workflow ONCE at the end.
-5. Stop after validate_workflow — do NOT call get_node_details in a loop.
-6. Parameters must be pure JSON — no // comments, no trailing commas.
-7. A workflow MUST start with a Trigger node.
+1. FIRST node MUST always be a Trigger — NO EXCEPTIONS.
+   - User ne trigger mention nahi kiya? Toh khud choose karo:
+     * "send message / notify" type tasks → MANUAL trigger
+     * "every day / every hour / scheduled" → SCHEDULE TRIGGER
+     * "when webhook received" → WEBHOOK TRIGGER
+     * Agar kuch samajh nahi aaya → MANUAL trigger use karo
+2. Trigger ke baad hi actions add karo — trigger ke bina workflow invalid hai.
+3. search_nodes call karo agar exact node name pata nahi.
+4. add_node mein EXACT names use karo available list se.
+5. connect_nodes_by_name se EVERY consecutive pair connect karo.
+6. validate_workflow ONCE call karo end mein — pass hone ke baad STOP.
+7. Parameters pure JSON — no // comments, no trailing commas.
 
-EXECUTION ORDER:
-  Step 1 → add_node  (trigger first, then actions/conditionals in order)
-  Step 2 → connect_nodes_by_name  (link every pair: A→B, B→C, C→D …)
-  Step 3 → validate_workflow  (ONCE — then stop)
+EXECUTION ORDER (strict):
+  Step 1 → add_node: TRIGGER FIRST (mandatory)
+  Step 2 → add_node: remaining action/conditional nodes
+  Step 3 → connect_nodes_by_name: har pair ko connect karo (A→B, B→C ...)
+  Step 4 → validate_workflow: ONCE, then STOP
+
+TRIGGER SELECTION GUIDE:
+  No trigger mentioned by user?
+    → "send/notify/message" tasks     = MANUAL
+    → "every X time / daily / hourly" = SCHEDULE TRIGGER  
+    → "on webhook / HTTP event"       = WEBHOOK TRIGGER
+    → Default fallback                = MANUAL
 
 User request: {user_input}"""
 
