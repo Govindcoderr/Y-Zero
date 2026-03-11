@@ -313,11 +313,12 @@
 # backend/types/workflow.py
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
+from ..utils.config import Config
 
 # ── Global node registry .....
 _NODE_REGISTRY: Dict[str, Dict[str, Any]] = {}
 
-_ICON_BASE_URL = "https://s3.ap-south-1.amazonaws.com/y0-dev-assets/y0-uploads/tools"
+_ICON_BASE_URL = Config._ICON_BASE_URL
 
 
 def register_node_types(node_types: List[Dict[str, Any]]) -> None:

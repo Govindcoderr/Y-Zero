@@ -139,6 +139,7 @@
         
 #         return results
 
+
 # engines/node_search_engine.py
 
 """
@@ -231,7 +232,6 @@ def sublime_search(
     scored.sort(key=lambda x: x[0], reverse=True)
     return scored
 
-#
 # dedupeNodes  (port of n8n dedupeNodes — keeps latest version)#
 def _get_latest_version(node: Dict[str, Any]) -> int:
     v = node.get("version", 1)
