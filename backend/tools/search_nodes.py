@@ -96,7 +96,7 @@ Always call this BEFORE add_node to confirm the correct node name.
         for q in queries:
             query_type = q.get("queryType", "name")
 
-            # ── NAME SEARCH ────────────────────────────────────────────────
+            # ── NAME SEARCH .....
             if query_type == "name":
                 query_term = q.get("query", "").strip()
                 if not query_term:

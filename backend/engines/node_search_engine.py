@@ -360,7 +360,7 @@ class NodeSearchEngine:
             for n in self.node_types
         ]
 
-    # ── internal ──────────────────────────────────────────────────
+    # ── internal .....──
     def _to_result(self, node: Dict[str, Any], score: float) -> NodeSearchResult:
         return NodeSearchResult(
             name=node.get("name", ""),

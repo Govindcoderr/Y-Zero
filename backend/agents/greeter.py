@@ -18,7 +18,7 @@
 # from langchain_core.messages import SystemMessage, HumanMessage
 # from typing import Dict, Any
 
-# # ── System prompt ──────────────────────────────────────────────────────────────
+# # ── System prompt .─
 # GREETER_SYSTEM_PROMPT = """You are the friendly front-desk assistant for an AI-powered n8n Workflow Builder.
 
 # YOUR ROLE:
@@ -66,7 +66,7 @@
 # - Respond in the same language the user writes in (English, Hindi, Hinglish — match their style)
 # """
 
-# # ── Intent classifier prompt ───────────────────────────────────────────────────
+# # ── Intent classifier prompt .....───
 # INTENT_SYSTEM_PROMPT = """You are an intent classifier for an n8n Workflow Builder tool.
 
 # Classify the user's message into ONE of these categories:
@@ -185,9 +185,9 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage
 from typing import Dict, Any, Optional
 
-# ─────────────────────────────────────────────────────────────────────────────
+# .────────────────
 # Intent classifier prompt
-# ─────────────────────────────────────────────────────────────────────────────
+# .────────────────
 INTENT_SYSTEM_PROMPT = """You are an intent classifier for an AI Workflow Builder tool.
 
 Classify the user's message into EXACTLY ONE of these categories:
@@ -247,9 +247,9 @@ CRITICAL RULES:
 - Respond with ONLY one word: GREETING, GUIDE_REQUEST, WORKFLOW_REQUEST, WORKFLOW_MODIFY, WORKFLOW_QUESTION, or OUT_OF_SCOPE
 """
 
-# ─────────────────────────────────────────────────────────────────────────────
+# .────────────────
 # Greeter response prompt
-# ─────────────────────────────────────────────────────────────────────────────
+# .────────────────
 GREETER_SYSTEM_PROMPT = """You are the friendly front-desk assistant for an AI-powered Workflow Builder.
 
 YOUR ROLE:
@@ -312,9 +312,9 @@ class GreeterAgent:
     def __init__(self, llm: BaseChatModel):
         self.llm = llm
 
-    # ──────────────────────────────────────────────────────────────
+    # .─
     # Public API
-    # ──────────────────────────────────────────────────────────────
+    # .─
 
     async def classify_intent(self, user_message: str) -> str:
         """
@@ -402,9 +402,9 @@ class GreeterAgent:
             "response": reply,
         }
 
-    # ──────────────────────────────────────────────────────────────
+    # .─
     # Helpers
-    # ──────────────────────────────────────────────────────────────
+    # .─
 
     def _answer_workflow_question(self, workflow: Optional[Any]) -> str:
         """Build a human-readable answer about current workflow state."""

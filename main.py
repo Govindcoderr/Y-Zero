@@ -202,7 +202,6 @@ from submain import WorkflowBuilderOrchestrator
 
 orchestrator: Optional[WorkflowBuilderOrchestrator] = None
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global orchestrator
@@ -259,28 +258,70 @@ class WorkflowRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
 
+class HandleBoundItem(BaseModel):
+    id: str
+    type: str
+    nodeId: str
+    position: str
+    x: float
+    y: float
+    width: int
+    height: int
+
+
+class HandleBounds(BaseModel):
+    source: List[HandleBoundItem]
+    target: Optional[List[HandleBoundItem]] = None
+
+
+class NodeData(BaseModel):
+    icon: str
+    color: str
+    label: str
+    value: Dict[str, Any]
+    actionId: str
+    operation: Optional[str] = None
+    description: str
+    resourceName: Optional[str] = None
+
 
 class NodeOut(BaseModel):
-    node_key: str
-    nodeId: str
+    id: str
     type: str
-    value: str
-    expressionExecutionName: str
+    dimensions: Dict[str, Any]
+    computedPosition: Dict[str, Any]
+    handleBounds: HandleBounds
+    selectable: bool
+    selected: bool
+    dragging: bool
+    resizing: bool
+    initialized: bool
+    isParent: bool
+    position: Dict[str, Any]
+    data: NodeData
+    events: Dict[str, Any]
     parameters: Dict[str, Any]
+    nodeTypeActions: Optional[str] = None
 
 
 class EdgeOut(BaseModel):
-    from_node: str
-    to_node: str
+    id: str
+    type: str
+    source: str
+    target: str
+    sourceHandle: str
+    targetHandle: str
 
 
 class WorkflowResponse(BaseModel):
+    id: int
     name: str
     nodes: List[NodeOut]
     edges: List[EdgeOut]
+    viewport: Dict[str, Any]
+    publish: int
     response: str
     session_id: str
-
 
 class HealthResponse(BaseModel):
     status: str
@@ -355,10 +396,13 @@ async def build_workflow(request: WorkflowRequest):
             reply = extract_assistant_message(result, fallback="Hello! How can I help you?")
             print(f"🤝 Greeter response returned to frontend: {reply[:80]}...")
             return {
-                "name": "Chat",
-                "nodes": [],
-                "edges": [],
-                "response": reply,
+                "id":         1,
+                "name":       "Chat",
+                "nodes":      [],
+                "edges":      [],
+                "viewport":   {"x": 0, "y": 0, "zoom": 1},
+                "publish":    0,
+                "response":   reply,
                 "session_id": request.session_id or "default",
             }
 
@@ -391,9 +435,12 @@ async def build_workflow(request: WorkflowRequest):
         )
 
         return {
+            "id":         output.get("id", 1),
             "name":       output["name"],
             "nodes":      output["nodes"],
             "edges":      output["edges"],
+            "viewport":   output.get("viewport", {"x": 0, "y": 0, "zoom": 1}),
+            "publish":    output.get("publish", 0),
             "response":   assistant_message,
             "session_id": request.session_id or "default",
         }
@@ -403,6 +450,12 @@ async def build_workflow(request: WorkflowRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error building workflow: {str(e)}")
 
+from backend.utils.Workflow_trans import transform_workflow
+
+@app.post("/workflow/publish")
+def publish_workflow(data: dict):
+    frontend_json = transform_workflow(data, workflow_id=data.get("id", 0))
+    return frontend_json
 
 @app.get("/workflow/{workflow_id}")
 async def get_workflow(workflow_id: str):

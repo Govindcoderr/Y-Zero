@@ -41,16 +41,15 @@ def build_workflow(message: str):
     return None
 
 
-# ── Header ────────────────────────────────────────────────────────
+# ── Header ─────────────────────────────────────────────────────────
 st.title(" AI Workflow Builder ♾️")
 st.caption("Describe your workflow in plain English and get a structured automation workflow.")
 
-# ── Sidebar ───────────────────────────────────────────────────────
+# ── Sidebar ────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Status")
     is_healthy = check_api()
     st.success(" ᯓ ✈︎ API Connected") if is_healthy else st.error("❌ API Disconnected")
-    # st.success("𐐘💥╾━╤デ╦︻ඞා")
 
     st.markdown("---")
     st.markdown("### 💡 Examples")
@@ -63,7 +62,7 @@ with st.sidebar:
     ]:
         st.caption(f"• {ex}")
 
-# ── Chat History (conversation UI) ────────────────────────────────
+# ── Chat History ───────────────────────────────────────────────────
 if st.session_state.history:
     st.markdown("### 💬 Conversation")
     for msg in st.session_state.history:
@@ -73,7 +72,7 @@ if st.session_state.history:
             st.markdown(content)
     st.markdown("---")
 
-# ── Input ─────────────────────────────────────────────────────────
+# ── Input ──────────────────────────────────────────────────────────
 user_input = st.text_area(
     "Describe your workflow:",
     placeholder="e.g. Every day at 8am fetch top news and send me an SMS",
@@ -99,11 +98,11 @@ if st.button(" Build Workflow", type="primary", use_container_width=True):
                 st.success(" Workflow built!")
                 st.rerun()
 
-# ── Results ───────────────────────────────────────────────────────
-# Sirf tab dikhao agar actual nodes hain (greeter response pe nahi)
+# ── Results ────────────────────────────────────────────────────────
+# Only show tabs if actual nodes exist (not on greeter/chat responses)
 if st.session_state.workflow_state and st.session_state.workflow_state.get("nodes"):
     wf = st.session_state.workflow_state
-    
+
     nodes = wf.get("nodes", [])
     edges = wf.get("edges", [])
 
@@ -116,43 +115,77 @@ if st.session_state.workflow_state and st.session_state.workflow_state.get("node
 
     tab_nodes, tab_edges, tab_json = st.tabs(["🟦 Nodes", "🔗 Edges", "📄 Raw JSON"])
 
-    # ── Nodes tab ────────────────────────────────────────────────
+    # ── Nodes tab ──────────────────────────────────────────────────
     with tab_nodes:
         for node in nodes:
-            node_type = node.get("type")
-            css_class = f"node-{node_type}"
-            type_emoji = {"trigger": "⚡", "action": "⚙️", "condition": "🔀"}.get(node_type, "📦")
+            node_id        = node.get("id", "")
+            node_type      = node.get("type", "")
+            node_type_acts = node.get("nodeTypeActions", "action")
+            data           = node.get("data", {})
+            label          = data.get("label", node_type)
+            description    = data.get("description", "")
+            action_id      = data.get("actionId", "")
+            operation      = data.get("operation", "")
+            resource       = data.get("resourceName", "")
+            icon           = data.get("icon", "")
+
+            type_emoji = {
+                "trigger":     "⚡",
+                "action":      "⚙️",
+                "conditional": "🔀",
+            }.get(node_type_acts, "📦")
+
+            css_class = f"node-{node_type_acts}"
+
             st.markdown(f"""
 <div class="node-card {css_class}">
-  <strong>{type_emoji} {node.get('value')} &nbsp;·&nbsp; <code>{node.get('nodeId','')[:8]}…</code></strong><br>
-  <small>Type: <b>{node_type}</b> &nbsp;|&nbsp; expressionExecutionName: <code>{node.get('expressionExecutionName')}</code></small>
+  <strong>{type_emoji} {label} &nbsp;·&nbsp; <code>{node_id[:8]}…</code></strong><br>
+  <small>
+    Type: <b>{node_type}</b> &nbsp;|&nbsp;
+    Role: <code>{node_type_acts}</code> &nbsp;|&nbsp;
+    Operation: <code>{operation or '—'}</code> &nbsp;|&nbsp;
+    Resource: <code>{resource or '—'}</code>
+  </small>
+  {"<br><small>" + description + "</small>" if description else ""}
 </div>
 """, unsafe_allow_html=True)
-            with st.expander(f"Parameters — {node.get('value')}"):
+
+            with st.expander(f"Parameters — {label}"):
                 st.json(node.get("parameters", {}))
 
-    # ── Edges tab ─────────────────────────────────────────────────
+    # ── Edges tab ──────────────────────────────────────────────────
     with tab_edges:
         if edges:
-            # Build id→value lookup for display
-            id_to_value = {n["nodeId"]: n["value"] for n in nodes}
+            # Build id → label lookup using new format
+            id_to_label = {
+                n["id"]: n.get("data", {}).get("label", n["id"][:8])
+                for n in nodes
+            }
             for edge in edges:
-                src = edge.get("from_node", "")
-                tgt = edge.get("to_node", "")
-                src_label = id_to_value.get(src, src[:8])
-                tgt_label = id_to_value.get(tgt, tgt[:8])
+                src       = edge.get("source", "")
+                tgt       = edge.get("target", "")
+                src_label = id_to_label.get(src, src[:8] if src else "?")
+                tgt_label = id_to_label.get(tgt, tgt[:8] if tgt else "?")
+                edge_type = edge.get("type", "action")
                 st.markdown(f"""
 <div class="edge-card">
   ⚡ <b>{src_label}</b> &nbsp;→&nbsp; <b>{tgt_label}</b>
-  <br><small><code>{src}</code> → <code>{tgt}</code></small>
+  <br><small>type: <code>{edge_type}</code> &nbsp;|&nbsp; <code>{src[:8]}…</code> → <code>{tgt[:8]}…</code></small>
 </div>
 """, unsafe_allow_html=True)
         else:
             st.info("No edges found")
 
-    # ── JSON tab ──────────────────────────────────────────────────
+    # ── JSON tab ───────────────────────────────────────────────────
     with tab_json:
-        clean = {"name": wf.get("name"), "nodes": nodes, "edges": edges}
+        clean = {
+            "id":       wf.get("id", 1),
+            "name":     wf.get("name"),
+            "nodes":    nodes,
+            "edges":    edges,
+            "viewport": wf.get("viewport", {"x": 0, "y": 0, "zoom": 1}),
+            "publish":  wf.get("publish", 0),
+        }
         st.json(clean)
         st.download_button(
             "⬇️ Download JSON",

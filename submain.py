@@ -32,6 +32,7 @@ from backend.types.coordination import CoordinationLogEntry
 from backend.types.workflow import SimpleWorkflow
 from datetime import datetime
 import json
+from backend.tracker.pipeline_tracker import emit, emit_done, StepStatus
 
 
 class WorkflowBuilderOrchestrator:
@@ -104,7 +105,7 @@ class WorkflowBuilderOrchestrator:
 
         graph.set_entry_point("greeter")
 
-         # ── Greeter routing ────────────────────────────────────────────────────
+         # ── Greeter routing .....────
         # If should_proceed=True → go to supervisor (normal workflow pipeline)
         # If should_proceed=False → END (greeter already responded)
         graph.add_conditional_edges(
