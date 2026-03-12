@@ -79,7 +79,7 @@ user_input = st.text_area(
     height=90,
 )
 
-if st.button(" Build Workflow", type="primary", use_container_width=True):
+if st.button(" Build Workflow", type="primary", use_container_width=False):
     if not user_input.strip():
         st.warning("Please enter a workflow description")
     elif not is_healthy:
