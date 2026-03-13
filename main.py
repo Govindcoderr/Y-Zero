@@ -474,12 +474,12 @@ async def build_workflow(request: WorkflowRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error building workflow: {str(e)}")
 
-from backend.utils.Workflow_trans import transform_workflow
+# from backend.utils.Workflow_trans import transform_workflow
 
-@app.post("/workflow/publish")
-def publish_workflow(data: dict):
-    frontend_json = transform_workflow(data, workflow_id=data.get("id", 0))
-    return frontend_json
+# @app.post("/workflow/publish")
+# def publish_workflow(data: dict):
+#     frontend_json = transform_workflow(data, workflow_id=data.get("id", 0))
+#     return frontend_json
 
 @app.get("/workflow/{workflow_id}")
 async def get_workflow(workflow_id: str):
