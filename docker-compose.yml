@@ -1,0 +1,52 @@
+# docker-compose.yml
+# Run Elasticsearch locally for development
+#
+# Usage:
+#   docker compose up -d          ← start ES in background
+#   docker compose down           ← stop
+#   docker compose logs -f es     ← view logs
+#
+# After starting, ES is available at: http://localhost:9200
+# Kibana (dashboard) at:             http://localhost:5601
+
+version: "3.9"
+
+services:
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: yzero_elasticsearch
+    environment:
+      - discovery.type=single-node          # single node, no cluster setup
+      - xpack.security.enabled=false        # disable auth for local dev
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m     # limit RAM to 512MB
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.0
+    container_name: yzero_kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      es:
+        condition: service_healthy
+
+volumes:
+  esdata:
+    driver: local

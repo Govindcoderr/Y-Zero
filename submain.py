@@ -96,7 +96,7 @@ class WorkflowBuilderOrchestrator:
 
         graph = StateGraph(WorkflowState)
 
-        graph.add_node("greeter", self._greeter_node)       # NEW: 1st entry point
+        graph.add_node("greeter", self._greeter_node)      
         graph.add_node("supervisor", self._supervisor_node)
         graph.add_node("discovery", self._discovery_node)
         graph.add_node("builder", self._builder_node)
@@ -105,7 +105,7 @@ class WorkflowBuilderOrchestrator:
 
         graph.set_entry_point("greeter")
 
-         # ── Greeter routing .....────
+        # ── Greeter routing .....────
         # If should_proceed=True → go to supervisor (normal workflow pipeline)
         # If should_proceed=False → END (greeter already responded)
         graph.add_conditional_edges(

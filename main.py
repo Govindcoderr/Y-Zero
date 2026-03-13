@@ -164,6 +164,9 @@
 
 
 
+
+
+
 # main.py - FastAPI Backend
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -176,13 +179,13 @@ from contextlib import asynccontextmanager
 import httpx
 from backend.utils.node_loader import fetch_nodes_from_api
 from backend.utils.node_normalizer import load_and_normalize_nodes
-
+from backend.utils.es_indexer import reindex_all
 
 load_dotenv()
 
 from submain import WorkflowBuilderOrchestrator
 
-# # Load node types
+# # Load node types locally
 # try:
 #     with open("node_types.json", "r", encoding="utf-8") as f:
 #         NODE_TYPES = json.load(f)
@@ -198,27 +201,38 @@ from submain import WorkflowBuilderOrchestrator
 # print(f"✅ Loaded {len(NODE_TYPES)} node types")
 
 
-
-
 orchestrator: Optional[WorkflowBuilderOrchestrator] = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global orchestrator
 
-        # Nodes load karo — API first, local file fallback
-    nodes_api_url = os.getenv("NODES_API_URL", "").strip()
+    # # Nodes load karo — API first, local file fallback
+    # nodes_api_url = os.getenv("NODES_API_URL", "").strip()
 
-    if nodes_api_url:
-        NODE_TYPES = await fetch_nodes_from_api(nodes_api_url)
-        if not NODE_TYPES:
-            print("⚠️  API returned 0 nodes — falling back to local file")
-            NODE_TYPES = load_and_normalize_nodes()
-    else:
-        NODE_TYPES = load_and_normalize_nodes()
+    # if nodes_api_url:
+    #     NODE_TYPES = await fetch_nodes_from_api(nodes_api_url)
+    #     if not NODE_TYPES:
+    #         print("⚠️  API returned 0 nodes — falling back to local file")
+    #         NODE_TYPES = load_and_normalize_nodes()
+    # else:
+    #     NODE_TYPES = load_and_normalize_nodes()
+
+    # if not NODE_TYPES:
+    #     print("⚠️  WARNING: No nodes loaded. Set NODES_API_URL in .env")
+
+        # Naya — ES se nodes load karo
+        
+    from backend.utils.es_loader import load_nodes_from_es
+    NODE_TYPES = await load_nodes_from_es()
 
     if not NODE_TYPES:
-        print("⚠️  WARNING: No nodes loaded. Set NODES_API_URL in .env")
+        raise RuntimeError(
+            "❌ No nodes loaded from Elasticsearch! "
+            "Make sure ES is running and index is populated."
+        )
+
+    print(f"✅ {len(NODE_TYPES)} nodes loaded from Elasticsearch")
 
     try:
         api_key = os.getenv("GROQ_API_KEY")
@@ -229,7 +243,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"❌ Failed to initialize orchestrator: {e}")
         raise
-    yield
+
+    #3. ES reindex (runs after orchestrator so search_engine exists) ──
+    # This is async + idempotent — safe to run every startup
+    try:
+        await reindex_all(orchestrator.search_engine, NODE_TYPES)
+    except Exception as e:
+        # ES failure must NOT crash the server
+        print(f"⚠️  ES reindex skipped: {e}")
+ 
+    yield  # ← server runs here
+    
     orchestrator = None
     print("🔄 Orchestrator shutdown complete")
 
@@ -372,9 +396,9 @@ async def health_check():
     return {"status": "healthy", "message": "Workflow Builder API is running"}
 
 
-@app.get("/node-types")
-async def get_node_types():
-    return {"node_types": NODE_TYPES[:20], "count": len(NODE_TYPES)}
+# @app.get("/node-types")
+# async def get_node_types():
+#     return {"node_types": NODE_TYPES[:20], "count": len(NODE_TYPES)}
 
 
 @app.post("/workflow", response_model=WorkflowResponse)
@@ -460,6 +484,58 @@ def publish_workflow(data: dict):
 @app.get("/workflow/{workflow_id}")
 async def get_workflow(workflow_id: str):
     return {"workflow_id": workflow_id, "message": "Workflow retrieval not yet implemented"}
+
+
+# OPTIONAL: add this admin endpoint for manual re-sync
+# (useful when new nodes added to DB without restart)
+# ─────────────────────────────────────────────────────────────────
+ 
+@app.post("/admin/reindex")
+async def admin_reindex():
+    """
+    Re-sync all nodes from the database into Elasticsearch.
+    Call this after adding new nodes — no server restart needed.
+    """
+    if not orchestrator:
+        raise HTTPException(status_code=503, detail="Orchestrator not ready")
+ 
+    node_types = orchestrator.node_types
+    await reindex_all(orchestrator.search_engine, node_types)
+ 
+    return {
+        "status": "ok",
+        "nodes_indexed": len(node_types),
+        "es_available": getattr(orchestrator.search_engine, "_es_available", False),
+    }
+ 
+ 
+@app.get("/admin/es-status")
+async def es_status():
+    """Check Elasticsearch connection and index stats."""
+    if not orchestrator:
+        raise HTTPException(status_code=503, detail="Orchestrator not ready")
+ 
+    se = orchestrator.search_engine
+    es_available = getattr(se, "_es_available", False)
+ 
+    if not es_available:
+        return {
+            "es_available": False,
+            "backend": "in-memory fallback",
+            "total_nodes": len(se.node_types),
+        }
+ 
+    try:
+        from backend.engines.node_search_engine import ES_INDEX
+        stats = se._es.count(index=ES_INDEX)
+        return {
+            "es_available": True,
+            "backend": "elasticsearch",
+            "es_doc_count": stats["count"],
+            "total_nodes_in_memory": len(se.node_types),
+        }
+    except Exception as e:
+        return {"es_available": True, "error": str(e)}
 
 
 if __name__ == "__main__":
