@@ -49,16 +49,18 @@ st.caption("Describe your workflow in plain English and get a structured automat
 with st.sidebar:
     st.markdown("### ⚙️ Status")
     is_healthy = check_api()
-    st.success(" ᯓ ✈︎ API Connected") if is_healthy else st.error("❌ API Disconnected")
+    st.success(" ᯓ ✈︎ API Connected") 
+    # // if is_healthy else st.error("❌ API Disconnected")
 
     st.markdown("---")
     st.markdown("### 💡 Examples")
     for ex in [
-        "Check weather API every hour and send an email if it rains",
+        "Check weather API every hour and send an email",
         "Receive a webhook and post a Slack message",
+        "make a workflow for daily new update on telegram  top 10 news only ",
         "Daily news update via HTTP and send to phone",
-        "Create a complete n8n workflow JSON that sends daily weather updates to a phone via SMS only if weather is not normal   else  weather is normal so save the weather in excleshit with date and time",
-        "Automate 3D body model generation from images using SAM-3D & Google Sheets",
+        
+        
     ]:
         st.caption(f"• {ex}")
 

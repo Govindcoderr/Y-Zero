@@ -30,10 +30,20 @@ Y-Zero is an AI-native workflow design assistant that transforms plain-language 
 ## 3. High-level architecture
 
 - `streamlit_app.py`: UI for prompt input, workflow visualization, history, export
-- `main.py`: FastAPI endpoints `/health`, `/node-types`, `/workflow`, `/workflow/{id}`
+- `main.py`: FastAPI endpoints `/health`, `/workflow`, plus admin endpoints (`/admin/reindex`, `/admin/es-status`)
+  - Loads node definitions from **Elasticsearch** (preferred) via `backend/utils/es_loader.py`
+  - Falls back to **in-memory node search** when ES is unavailable
 - `submain.py`: WorkflowBuilderOrchestrator with LangGraph pipeline
 - `llm_provider.py`: LLM configuration (tool-support model vs fast model)
 - `backend/`: agents, tools, engines, state, types, utils
+
+## 3.1 New / Updated Features (since last iteration)
+
+- ✅ **Elasticsearch-backed node catalog**: nodes are now loaded from ES and searchable via full-text fuzzy queries.
+- ✅ **Admin endpoints** for operational control: `/admin/reindex` and `/admin/es-status`.
+- ✅ **Greeter short-circuit**: handles greetings/out-of-scope queries without generating workflows.
+- ✅ **Frontend-friendly response shape**: API now returns `nodes` + `edges` (improved Streamlit UI display).
+- ✅ **Resilient fallback**: if ES is down, the system continues using in-memory node search.
 
 ## 4. Pipeline (workflow) in detail
 
@@ -42,7 +52,7 @@ API call `POST /workflow` with JSON `{message, session_id}`
 
 ### 4.2 Step 1: Greeter stage
 - `GreeterAgent` distinguishes intent:
-  - `GREETING`, `GUIDE_REQUEST`, `OUT_OF_SCOPE` → short-circuit response
+  - `GREETING`, `GUIDE_REQUEST`, `OUT_OF_SCOPE` → short-circuit response (no workflow is built)
   - `WORKFLOW_REQUEST` → continue to supervisor
 
 ### 4.3 Step 2: Supervisor
@@ -59,7 +69,7 @@ API call `POST /workflow` with JSON `{message, session_id}`
 
 ### 4.5 Step 4: Builder (core engine)
 - `BuilderAgent` uses LLM tool calling with tools:
-  - `search_nodes` (NodeSearchEngine fuzzy/shortcut)
+  - `search_nodes` (NodeSearchEngine fuzzy/shortcut; uses Elasticsearch if available)
   - `add_node` (workflow mutation)
   - `connect_nodes_by_name`/`connect_nodes_by_id`
   - `validate_workflow`
@@ -73,6 +83,12 @@ API call `POST /workflow` with JSON `{message, session_id}`
 ### 4.7 Step 6: Responder
 - Collect final workflow, nodes + edges, message summary
 - Return to frontend with structured output and user text
+
+### 4.8 New Node Loading Flow (Elasticsearch)
+- On startup, `main.py` loads nodes from Elasticsearch via `backend/utils/es_loader.py`
+- If ES is unavailable, node types are still available via in-memory fallback
+- `POST /admin/reindex` refreshes the ES index from memory without restarting
+- `GET /admin/es-status` reports ES health and indexed node counts
 
 ## 5. Data model
 
