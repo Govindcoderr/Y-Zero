@@ -1,9 +1,13 @@
+
 # # backend/types/workflow.py
 # from typing import List, Dict, Any, Optional, Tuple
 # from dataclasses import dataclass, field
+# from ..utils.config import Config
 
-# # ── Global node registry .....──────
+# # ── Global node registry .....
 # _NODE_REGISTRY: Dict[str, Dict[str, Any]] = {}
+
+# _ICON_BASE_URL = Config._ICON_BASE_URL
 
 
 # def register_node_types(node_types: List[Dict[str, Any]]) -> None:
@@ -11,6 +15,21 @@
 #     global _NODE_REGISTRY
 #     _NODE_REGISTRY = {n.get("name", ""): n for n in node_types if n.get("name")}
 #     print(f"📋 Node registry: {len(_NODE_REGISTRY)} nodes registered")
+
+
+# # ── Icon URL builder .....
+
+# def _build_icon_url(node_data: Dict[str, Any]) -> str:
+#     """
+#     Build full S3 icon URL from node data.
+#     node_data has: 'id' (e.g. 132) and 'icon' (e.g. 'BigCommerce_logo.svg')
+#     Returns empty string if icon is null or missing.
+#     """
+#     node_id   = node_data.get("id", "")
+#     icon_file = node_data.get("icon") or ""   # handles null safely
+#     if node_id and icon_file:
+#         return f"{_ICON_BASE_URL}/{node_id}/{icon_file}"
+#     return ""
 
 
 # # ── Dynamic nodeType inference .....
@@ -21,17 +40,16 @@
 #     Priority:
 #       1. Registry mein nodeType field → use karo directly
 #       2. JSONL format: triggers array non-empty → trigger
-#       3. Fallback → action
+#       3. conditional array non-empty → conditional
+#       4. Fallback → action
 #     """
 #     node_data = _NODE_REGISTRY.get(node_type)
 #     if node_data:
 #         nt = node_data.get("nodeType", "").lower()
 #         if nt in ("trigger", "action", "conditional"):
 #             return nt
-#         # JSONL format — triggers array present aur non-empty
 #         if node_data.get("triggers"):
 #             return "trigger"
-#         # conditional field non-empty
 #         if node_data.get("conditional"):
 #             return "conditional"
 #     return "action"
@@ -39,7 +57,7 @@
 
 # def _infer_operation(node_type: str, out_type: str) -> str:
 #     """
-#     Dynamic operation value — node ki actual actions/triggers array se lo.
+#     Dynamic operation value — node ki actual actions/triggers/conditional array se lo.
 #     Fallback: trigger=1, action/conditional=3
 #     """
 #     node_data = _NODE_REGISTRY.get(node_type)
@@ -47,7 +65,7 @@
 #         all_fields = (
 #             node_data.get("actions", []) +
 #             node_data.get("triggers", []) +
-#             node_data.get("conditional", []) +   # ← conditional field bhi check karo
+#             node_data.get("conditional", []) +
 #             node_data.get("properties", [])
 #         )
 #         for f in all_fields:
@@ -62,8 +80,8 @@
 # def _extract_defaults(node_type: str) -> Dict[str, Any]:
 #     """
 #     Node ki actual data se saare default values extract karo.
-#     actions + triggers + properties — teeno scan karo.
-#     Koi bhi field skip nahi hoga (sirf 'authentication' type skip).
+#     actions + triggers + conditional + properties — sab scan karo.
+#     authentication/baseSelector type fields skip karo.
 #     """
 #     node_data = _NODE_REGISTRY.get(node_type)
 #     if not node_data:
@@ -72,7 +90,7 @@
 #     all_fields = (
 #         node_data.get("actions", []) +
 #         node_data.get("triggers", []) +
-#         node_data.get("conditional", []) +   
+#         node_data.get("conditional", []) +
 #         node_data.get("properties", [])
 #     )
 
@@ -110,6 +128,128 @@
 #     return defaults
 
 
+# def _build_node_geometry(
+#     node_id: str,
+#     node_type: str,
+#     out_type: str,
+#     source_handles: Optional[List[str]] = None,
+# ) -> Tuple[Dict[str, int], Dict[str, Any]]:
+#     """
+#     Build frontend node dimensions and handle bounds.
+
+#     Action/trigger nodes use the standard single-output geometry.
+#     Conditional nodes need branch-specific source handles so edges anchor
+#     to the correct visual ports on the canvas.
+#     """
+#     is_trigger = (out_type == "trigger")
+#     normalized_type = (node_type or "").upper()
+
+#     if normalized_type == "IF":
+#         dimensions = {"width": 260, "height": 80}
+#         handle_bounds = {
+#             "source": [
+#                 {
+#                     "id": "true",
+#                     "type": "source",
+#                     "nodeId": node_id,
+#                     "position": "right",
+#                     "x": 256.171875,
+#                     "y": 17.513015747070312,
+#                     "width": 6,
+#                     "height": 6,
+#                 },
+#                 {
+#                     "id": "false",
+#                     "type": "source",
+#                     "nodeId": node_id,
+#                     "position": "right",
+#                     "x": 256.1771240234375,
+#                     "y": 56.80000305175781,
+#                     "width": 6,
+#                     "height": 6,
+#                 },
+#             ],
+#             "target": None if is_trigger else [
+#                 {
+#                     "id": "in",
+#                     "type": "target",
+#                     "nodeId": node_id,
+#                     "position": "left",
+#                     "x": -2.1614990234375,
+#                     "y": 37.00520324707031,
+#                     "width": 6,
+#                     "height": 6,
+#                 }
+#             ],
+#         }
+#         return dimensions, handle_bounds
+
+#     if normalized_type == "SWITCH":
+#         handles = source_handles or ["out"]
+#         spacing = 24
+#         height = max(80, 32 + (len(handles) * spacing))
+#         center_y = max(0, (height / 2) - 3)
+#         start_y = max(8, center_y - ((len(handles) - 1) * spacing / 2))
+
+#         handle_bounds = {
+#             "source": [
+#                 {
+#                     "id": handle_id,
+#                     "type": "source",
+#                     "nodeId": node_id,
+#                     "position": "right",
+#                     "x": 256.171875,
+#                     "y": start_y + (index * spacing),
+#                     "width": 6,
+#                     "height": 6,
+#                 }
+#                 for index, handle_id in enumerate(handles)
+#             ],
+#             "target": None if is_trigger else [
+#                 {
+#                     "id": "in",
+#                     "type": "target",
+#                     "nodeId": node_id,
+#                     "position": "left",
+#                     "x": -2.1614990234375,
+#                     "y": center_y,
+#                     "width": 6,
+#                     "height": 6,
+#                 }
+#             ],
+#         }
+#         return {"width": 260, "height": height}, handle_bounds
+
+#     dimensions = {"width": 320, "height": 66}
+#     handle_bounds = {
+#         "source": [
+#             {
+#                 "id": "out",
+#                 "type": "source",
+#                 "nodeId": node_id,
+#                 "position": "right",
+#                 "x": 316.20001220703125,
+#                 "y": 30.050018310546875,
+#                 "width": 6,
+#                 "height": 6,
+#             }
+#         ],
+#         "target": None if is_trigger else [
+#             {
+#                 "id": "in",
+#                 "type": "target",
+#                 "nodeId": node_id,
+#                 "position": "left",
+#                 "x": -2.199981689453125,
+#                 "y": 30.050018310546875,
+#                 "width": 6,
+#                 "height": 6,
+#             }
+#         ],
+#     }
+#     return dimensions, handle_bounds
+
+
 # # ── WorkflowNode .
 
 # @dataclass
@@ -122,6 +262,7 @@
 #     parameters:   Dict[str, Any] = field(default_factory=dict)
 
 #     def to_dict(self) -> Dict[str, Any]:
+#         """Internal format — used by builder/configurator agents."""
 #         return {
 #             "id":          self.id,
 #             "name":        self.name,
@@ -131,97 +272,76 @@
 #             "parameters":  self.parameters,
 #         }
 
+#     def to_output_dict(self, source_handles: Optional[List[str]] = None) -> Dict[str, Any]:
+#         """
+#         Final backend format — matches frontend canvas JSON spec.
+#         Fully dynamic: all values come from _NODE_REGISTRY or LLM parameters.
+#         """
+#         out_type = _infer_output_type(self.type)
+#         params   = self._build_output_parameters(_infer_operation(self.type, out_type))
 
+#         node_data     = _NODE_REGISTRY.get(self.type, {})
+#         icon_url      = _build_icon_url(node_data)
+#         description   = node_data.get("description", self.name)
+#         action_id     = str(node_data.get("id", ""))        # ← node's 'id' field e.g. 132
+#         resource_val  = params.get("resource", None)
+#         operation_val = params.get("operation", None)
+#         label         = self.name
 
-# def to_output_dict(self) -> Dict[str, Any]:
-#     """
-#     New backend format — matches frontend canvas JSON spec.
-#     """
-#     out_type  = _infer_output_type(self.type)   # "trigger" | "action" | "conditional"
-#     operation = _infer_operation(self.type, out_type)
-#     params    = self._build_output_parameters(operation)
+#         x, y = self.position
 
-#     # Determine nodeTypeActions
-#     if out_type == "trigger":
-#         node_type_actions = "trigger"
-#     elif out_type == "conditional":
-#         node_type_actions = "conditional"
-#     else:
-#         node_type_actions = "action"
+#         dimensions, handle_bounds = _build_node_geometry(
+#             node_id=self.id,
+#             node_type=self.type,
+#             out_type=out_type,
+#             source_handles=source_handles,
+#         )
 
-#     # Pull icon/description/actionId from node registry if available
-#     node_data  = _NODE_REGISTRY.get(self.type, {})
-#     icon_url   = node_data.get("icon", "")
-#     description = node_data.get("description", self.name)
-#     action_id  = str(node_data.get("actionId", "1"))
-#     resource   = params.get("resource", None)
-#     operation_val = params.get("operation", None)
-#     label      = self.name   # human-readable label from builder
+#         if out_type == "trigger":
+#             node_type_actions = "trigger"
+#         elif out_type == "conditional":
+#             node_type_actions = "conditional"
+#         else:
+#             node_type_actions = "action"
 
-#     x, y = self.position
-
-#     return {
-#         "id":   self.id,
-#         "type": self.type,           # ← e.g. "MAILCHIMP", "MANUAL", "WHATSAPP BUSINESS CLOUD"
-#         "dimensions": {
-#             "width":  320,
-#             "height": 66
-#         },
-#         "computedPosition": { "x": x, "y": y, "z": 0 },
-#         "handleBounds": {
-#             "source": [
-#                 {
-#                     "id": "out",
-#                     "type": "source",
-#                     "nodeId": self.id,
-#                     "position": "right",
-#                     "x": 316.2, "y": 30.05,
-#                     "width": 6, "height": 6
-#                 }
-#             ],
-#             "target": None if out_type == "trigger" else [
-#                 {
-#                     "id": "in",
-#                     "type": "target",
-#                     "nodeId": self.id,
-#                     "position": "left",
-#                     "x": -2.2, "y": 30.05,
-#                     "width": 6, "height": 6
-#                 }
-#             ]
-#         },
-#         "selectable": False,
-#         "selected":   False,
-#         "dragging":   False,
-#         "resizing":   False,
-#         "initialized": False,
-#         "isParent":   False,
-#         "position":   { "x": x, "y": y },
-#         "data": {
-#             "icon":         icon_url,
-#             "color":        "#E6E7EC",
-#             "label":        label,
-#             "value":        params,          # ← full parameter dict goes here
-#             "actionId":     action_id,
-#             "operation":    operation_val,
-#             "description":  description,
-#             "resourceName": resource
-#         },
-#         "events": {},
-#         "parameters":      params,           # ← same as data.value
-#         "nodeTypeActions": node_type_actions
-#     }
+#         return {
+#             "id":   self.id,
+#             "type": self.type,
+#             "dimensions": dimensions,
+#             "computedPosition": {"x": x, "y": y, "z": 0},
+#             "handleBounds":     handle_bounds,
+#             "selectable":       False,
+#             "selected":         False,
+#             "dragging":         False,
+#             "resizing":         False,
+#             "initialized":      False,
+#             "isParent":         False,
+#             "position":         {"x": x, "y": y},
+#             "data": {
+#                 "icon":         icon_url,
+#                 "color":        "#E6E7EC",
+#                 "label":        label,
+#                 "value":        params,         # full parameter dict
+#                 "actionId":     action_id,
+#                 "operation":    operation_val,
+#                 "description":  description,
+#                 "resourceName": resource_val
+#             },
+#             "events":          {},
+#             "parameters":      params,          # same as data.value
+#             "nodeTypeActions": node_type_actions
+#         }
 
 #     def _build_output_parameters(self, operation: str) -> Dict[str, Any]:
 #         """
 #         Parameter build order:
-#         1. Node ki actual data se dynamic defaults
+#         1. Node ki actual data se dynamic defaults (actions + triggers + conditional)
 #         2. LLM-provided parameters override karo
 #         3. operation always set karo
 #         """
-#         base = _extract_defaults(self.type)   # step 1: dynamic defaults
-#         base.update(self.parameters)           # step 2: LLM override
-#         base.setdefault("operation", operation) # step 3: operation ensure
+#         base = _extract_defaults(self.type)      # step 1: dynamic defaults
+#         base.update(self.parameters)             # step 2: LLM override
+#         base.setdefault("operation", operation)  # step 3: operation ensure
 #         return base
 
 
@@ -231,9 +351,32 @@
 # class WorkflowEdge:
 #     from_node_id: str
 #     to_node_id:   str
+#     source_handle: str = "out" 
+#     target_handle: str = "in"
+#     source_x: Optional[float] = None
+#     source_y: Optional[float] = None
+#     target_x: Optional[float] = None
+#     target_y: Optional[float] = None
 
 #     def to_output_dict(self) -> Dict[str, Any]:
-#         return {"from_node": self.from_node_id, "to_node": self.to_node_id}
+#         """New edge format — matches frontend canvas spec."""
+#         edge = {
+#             "id":           f"e-{self.from_node_id}-{self.to_node_id}",
+#             "type":         "action",  # hardcoded for now, can be dynamic if needed
+#             "source":       self.from_node_id,
+#             "target":       self.to_node_id,
+#             "sourceHandle": self.source_handle,
+#             "targetHandle": self.target_handle
+#         }
+#         if self.source_x is not None:
+#             edge["sourceX"] = self.source_x
+#         if self.source_y is not None:
+#             edge["sourceY"] = self.source_y
+#         if self.target_x is not None:
+#             edge["targetX"] = self.target_x
+#         if self.target_y is not None:
+#             edge["targetY"] = self.target_y
+#         return edge
 
 
 # # ── WorkflowConnection .....───────
@@ -266,13 +409,84 @@
 #         return next((n for n in self.nodes if n.name == name), None)
 
 #     def to_output_dict(self) -> Dict[str, Any]:
+#         """Final backend format — includes id, viewport, publish."""
+#         node_source_handles = self._collect_source_handles()
+#         node_outputs = [
+#             n.to_output_dict(source_handles=node_source_handles.get(n.name))
+#             for n in self.nodes
+#         ]
 #         return {
-#             "name":  self.name,
-#             "nodes": [n.to_output_dict() for n in self.nodes],
-#             "edges": self._build_edges(),
+#             "id":       1,
+#             "name":     self.name,
+#             "nodes":    node_outputs,
+#             "edges":    self._build_edges({node["id"]: node for node in node_outputs}),
+#             "viewport": {"x": 0, "y": 0, "zoom": 1},
+#             "publish":  0
 #         }
 
-#     def _build_edges(self) -> List[Dict[str, Any]]:
+#     def _collect_source_handles(self) -> Dict[str, List[str]]:
+#         handles_by_node: Dict[str, List[str]] = {}
+
+#         for src_name, conn_types in self.connections.items():
+#             src_node = self.get_node_by_name(src_name)
+#             src_node_type = src_node.type if src_node else ""
+#             ordered_handles: List[str] = []
+#             for connection_type, conn_arrays in conn_types.items():
+#                 for branch_index, _ in enumerate(conn_arrays):
+#                     handle_id = self._connection_to_source_handle(
+#                         node_type=src_node_type,
+#                         connection_type=connection_type,
+#                         branch_index=branch_index,
+#                     )
+#                     if handle_id not in ordered_handles:
+#                         ordered_handles.append(handle_id)
+
+#             if ordered_handles:
+#                 handles_by_node[src_name] = ordered_handles
+
+#         return handles_by_node
+
+#     @staticmethod
+#     def _connection_to_source_handle(
+#         node_type: str,
+#         connection_type: str,
+#         branch_index: int,
+#     ) -> str:
+#         normalized_type = (node_type or "").strip().upper()
+#         normalized = (connection_type or "").strip()
+
+#         if normalized not in ("", "main", "out"):
+#             return normalized
+
+#         if normalized_type == "IF":
+#             return "true" if branch_index == 0 else "false"
+
+#         if normalized_type == "SWITCH":
+#             return f"output-{branch_index}"
+
+#         if normalized in ("", "main", "out"):
+#             return "out"
+
+#         return normalized
+
+#     @staticmethod
+#     def _resolve_handle_center(
+#         node_output: Dict[str, Any],
+#         handle_kind: str,
+#         handle_id: str,
+#     ) -> Tuple[Optional[float], Optional[float]]:
+#         handle_bounds = node_output.get("handleBounds", {}) or {}
+#         handles = handle_bounds.get(handle_kind) or []
+#         handle = next((h for h in handles if h.get("id") == handle_id), None)
+#         if not handle:
+#             return None, None
+
+#         position = node_output.get("position", {}) or {}
+#         x = float(position.get("x", 0)) + float(handle.get("x", 0)) + (float(handle.get("width", 0)) / 2)
+#         y = float(position.get("y", 0)) + float(handle.get("y", 0)) + (float(handle.get("height", 0)) / 2)
+#         return x, y
+
+#     def _build_edges(self, node_outputs_by_id: Optional[Dict[str, Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
 #         name_to_id = {n.name: n.id for n in self.nodes}
 #         edges, seen = [], set()
 
@@ -280,20 +494,55 @@
 #             src_id = name_to_id.get(src_name)
 #             if not src_id:
 #                 continue
-#             for _, conn_arrays in conn_types.items():
-#                 for conn_array in conn_arrays:
+#             src_node = self.get_node_by_name(src_name)
+#             src_node_type = src_node.type if src_node else ""
+#             for connection_type, conn_arrays in conn_types.items():
+#                 for branch_index, conn_array in enumerate(conn_arrays):
+#                     source_handle = self._connection_to_source_handle(
+#                         node_type=src_node_type,
+#                         connection_type=connection_type,
+#                         branch_index=branch_index,
+#                     )
 #                     for conn in conn_array:
 #                         tgt_id = name_to_id.get(conn.node)
 #                         if not tgt_id:
 #                             continue
-#                         key = (src_id, tgt_id)
+#                         key = (src_id, tgt_id, source_handle)
 #                         if key in seen:
 #                             continue
 #                         seen.add(key)
-#                         edges.append(WorkflowEdge(src_id, tgt_id).to_output_dict())
+#                         source_x = source_y = target_x = target_y = None
+#                         if node_outputs_by_id:
+#                             src_node_output = node_outputs_by_id.get(src_id)
+#                             tgt_node_output = node_outputs_by_id.get(tgt_id)
+#                             if src_node_output:
+#                                 source_x, source_y = self._resolve_handle_center(
+#                                     src_node_output,
+#                                     "source",
+#                                     source_handle,
+#                                 )
+#                             if tgt_node_output:
+#                                 target_x, target_y = self._resolve_handle_center(
+#                                     tgt_node_output,
+#                                     "target",
+#                                     "in",
+#                                 )
+#                         edges.append(
+#                             WorkflowEdge(
+#                                 src_id,
+#                                 tgt_id,
+#                                 source_handle=source_handle,
+#                                 target_handle="in",
+#                                 source_x=source_x,
+#                                 source_y=source_y,
+#                                 target_x=target_x,
+#                                 target_y=target_y,
+#                             ).to_output_dict()
+#                         )
 #         return edges
 
 #     def to_dict(self) -> Dict[str, Any]:
+#         """Internal format — for agents only."""
 #         return {
 #             "name":  self.name,
 #             "nodes": [n.to_dict() for n in self.nodes],
@@ -311,6 +560,7 @@
 
 
 # backend/types/workflow.py
+from collections import deque
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from ..utils.config import Config
@@ -344,7 +594,6 @@ def _build_icon_url(node_data: Dict[str, Any]) -> str:
 
 
 # ── Dynamic nodeType inference .....
-
 def _infer_output_type(node_type: str) -> str:
     """
     100% dynamic — registry se nodeType lo, koi hardcoding nahi.
@@ -439,6 +688,128 @@ def _extract_defaults(node_type: str) -> Dict[str, Any]:
     return defaults
 
 
+def _build_node_geometry(
+    node_id: str,
+    node_type: str,
+    out_type: str,
+    source_handles: Optional[List[str]] = None,
+) -> Tuple[Dict[str, int], Dict[str, Any]]:
+    """
+    Build frontend node dimensions and handle bounds.
+
+    Action/trigger nodes use the standard single-output geometry.
+    Conditional nodes need branch-specific source handles so edges anchor
+    to the correct visual ports on the canvas.
+    """
+    is_trigger = (out_type == "trigger")
+    normalized_type = (node_type or "").upper()
+
+    if normalized_type == "IF":
+        dimensions = {"width": 260, "height": 80}
+        handle_bounds = {
+            "source": [
+                {
+                    "id": "true",
+                    "type": "source",
+                    "nodeId": node_id,
+                    "position": "right",
+                    "x": 256.171875,
+                    "y": 17.513015747070312,
+                    "width": 6,
+                    "height": 6,
+                },
+                {
+                    "id": "false",
+                    "type": "source",
+                    "nodeId": node_id,
+                    "position": "right",
+                    "x": 256.1771240234375,
+                    "y": 56.80000305175781,
+                    "width": 6,
+                    "height": 6,
+                },
+            ],
+            "target": None if is_trigger else [
+                {
+                    "id": "in",
+                    "type": "target",
+                    "nodeId": node_id,
+                    "position": "left",
+                    "x": -2.1614990234375,
+                    "y": 37.00520324707031,
+                    "width": 6,
+                    "height": 6,
+                }
+            ],
+        }
+        return dimensions, handle_bounds
+
+    if normalized_type == "SWITCH":
+        handles = source_handles or ["out"]
+        spacing = 24
+        height = max(80, 32 + (len(handles) * spacing))
+        center_y = max(0, (height / 2) - 3)
+        start_y = max(8, center_y - ((len(handles) - 1) * spacing / 2))
+
+        handle_bounds = {
+            "source": [
+                {
+                    "id": handle_id,
+                    "type": "source",
+                    "nodeId": node_id,
+                    "position": "right",
+                    "x": 256.171875,
+                    "y": start_y + (index * spacing),
+                    "width": 6,
+                    "height": 6,
+                }
+                for index, handle_id in enumerate(handles)
+            ],
+            "target": None if is_trigger else [
+                {
+                    "id": "in",
+                    "type": "target",
+                    "nodeId": node_id,
+                    "position": "left",
+                    "x": -2.1614990234375,
+                    "y": center_y,
+                    "width": 6,
+                    "height": 6,
+                }
+            ],
+        }
+        return {"width": 260, "height": height}, handle_bounds
+
+    dimensions = {"width": 320, "height": 66}
+    handle_bounds = {
+        "source": [
+            {
+                "id": "out",
+                "type": "source",
+                "nodeId": node_id,
+                "position": "right",
+                "x": 316.20001220703125,
+                "y": 30.050018310546875,
+                "width": 6,
+                "height": 6,
+            }
+        ],
+        "target": None if is_trigger else [
+            {
+                "id": "in",
+                "type": "target",
+                "nodeId": node_id,
+                "position": "left",
+                "x": -2.199981689453125,
+                "y": 30.050018310546875,
+                "width": 6,
+                "height": 6,
+            }
+        ],
+    }
+    return dimensions, handle_bounds
+
+
 # ── WorkflowNode .
 
 @dataclass
@@ -461,7 +832,11 @@ class WorkflowNode:
             "parameters":  self.parameters,
         }
 
-    def to_output_dict(self) -> Dict[str, Any]:
+    def to_output_dict(
+        self,
+        source_handles: Optional[List[str]] = None,
+        position_override: Optional[Tuple[int, int]] = None,
+    ) -> Dict[str, Any]:
         """
         Final backend format — matches frontend canvas JSON spec.
         Fully dynamic: all values come from _NODE_REGISTRY or LLM parameters.
@@ -477,36 +852,14 @@ class WorkflowNode:
         operation_val = params.get("operation", None)
         label         = self.name
 
-        x, y = self.position
+        x, y = position_override or self.position
 
-        # Triggers have no incoming handle — they start the flow
-        is_trigger = (out_type == "trigger")
-        handle_bounds = {
-            "source": [
-                {
-                    "id":       "out",
-                    "type":     "source",
-                    "nodeId":   self.id,
-                    "position": "right",
-                    "x":        316.20001220703125,
-                    "y":        30.050018310546875,
-                    "width":    6,
-                    "height":   6
-                }
-            ],
-            "target": None if is_trigger else [
-                {
-                    "id":       "in",
-                    "type":     "target",
-                    "nodeId":   self.id,
-                    "position": "left",
-                    "x":        -2.199981689453125,
-                    "y":        30.050018310546875,
-                    "width":    6,
-                    "height":   6
-                }
-            ]
-        }
+        dimensions, handle_bounds = _build_node_geometry(
+            node_id=self.id,
+            node_type=self.type,
+            out_type=out_type,
+            source_handles=source_handles,
+        )
 
         if out_type == "trigger":
             node_type_actions = "trigger"
@@ -518,10 +871,7 @@ class WorkflowNode:
         return {
             "id":   self.id,
             "type": self.type,
-            "dimensions": {
-                "width":  320,
-                "height": 66
-            },
+            "dimensions": dimensions,
             "computedPosition": {"x": x, "y": y, "z": 0},
             "handleBounds":     handle_bounds,
             "selectable":       False,
@@ -565,17 +915,32 @@ class WorkflowNode:
 class WorkflowEdge:
     from_node_id: str
     to_node_id:   str
+    source_handle: str = "out" 
+    target_handle: str = "in"
+    source_x: Optional[float] = None
+    source_y: Optional[float] = None
+    target_x: Optional[float] = None
+    target_y: Optional[float] = None
 
     def to_output_dict(self) -> Dict[str, Any]:
         """New edge format — matches frontend canvas spec."""
-        return {
+        edge = {
             "id":           f"e-{self.from_node_id}-{self.to_node_id}",
-            "type":         "action",
+            "type":         "action",  # hardcoded for now, can be dynamic if needed
             "source":       self.from_node_id,
             "target":       self.to_node_id,
-            "sourceHandle": "out",
-            "targetHandle": "in"
+            "sourceHandle": self.source_handle,
+            "targetHandle": self.target_handle
         }
+        if self.source_x is not None:
+            edge["sourceX"] = self.source_x
+        if self.source_y is not None:
+            edge["sourceY"] = self.source_y
+        if self.target_x is not None:
+            edge["targetX"] = self.target_x
+        if self.target_y is not None:
+            edge["targetY"] = self.target_y
+        return edge
 
 
 # ── WorkflowConnection .....───────
@@ -609,16 +974,187 @@ class SimpleWorkflow:
 
     def to_output_dict(self) -> Dict[str, Any]:
         """Final backend format — includes id, viewport, publish."""
+        node_source_handles = self._collect_source_handles()
+        node_positions = self._compute_canvas_positions()
+        node_outputs = [
+            n.to_output_dict(
+                source_handles=node_source_handles.get(n.name),
+                position_override=node_positions.get(n.id),
+            )
+            for n in self.nodes
+        ]
         return {
             "id":       1,
             "name":     self.name,
-            "nodes":    [n.to_output_dict() for n in self.nodes],
-            "edges":    self._build_edges(),
+            "nodes":    node_outputs,
+            "edges":    self._build_edges({node["id"]: node for node in node_outputs}),
             "viewport": {"x": 0, "y": 0, "zoom": 1},
             "publish":  0
         }
 
-    def _build_edges(self) -> List[Dict[str, Any]]:
+    def _compute_canvas_positions(self) -> Dict[str, Tuple[int, int]]:
+        """
+        Compute stable canvas coordinates from workflow connections.
+
+        This keeps straight flows on one horizontal lane and spreads branches
+        vertically so the canvas looks closer to a workflow builder layout.
+        """
+        if not self.nodes:
+            return {}
+
+        start_x = 80
+        start_y = 240
+        horizontal_gap = 430
+        vertical_gap = 170
+
+        node_by_name = {node.name: node for node in self.nodes}
+        node_order = {node.id: index for index, node in enumerate(self.nodes)}
+        children_by_id: Dict[str, List[Tuple[int, str]]] = {node.id: [] for node in self.nodes}
+        indegree: Dict[str, int] = {node.id: 0 for node in self.nodes}
+
+        for src_name, conn_types in self.connections.items():
+            src_node = node_by_name.get(src_name)
+            if not src_node:
+                continue
+
+            for _, conn_arrays in conn_types.items():
+                for branch_index, conn_array in enumerate(conn_arrays):
+                    for conn_index, conn in enumerate(conn_array):
+                        target_node = node_by_name.get(conn.node)
+                        if not target_node:
+                            continue
+
+                        effective_branch = conn_index if len(conn_arrays) == 1 else branch_index
+                        children_by_id[src_node.id].append((effective_branch, target_node.id))
+                        indegree[target_node.id] += 1
+
+        root_ids = [node.id for node in self.nodes if indegree[node.id] == 0]
+        if not root_ids:
+            root_ids = [self.nodes[0].id]
+
+        roots_sorted = sorted(root_ids, key=lambda node_id: node_order[node_id])
+
+        depth_by_id: Dict[str, int] = {}
+        depth_queue = deque((root_id, 0) for root_id in roots_sorted)
+        while depth_queue:
+            node_id, depth = depth_queue.popleft()
+            if depth <= depth_by_id.get(node_id, -1):
+                continue
+
+            depth_by_id[node_id] = depth
+            for _, child_id in children_by_id.get(node_id, []):
+                depth_queue.append((child_id, depth + 1))
+
+        lane_by_id: Dict[str, float] = {}
+        for root_index, root_id in enumerate(roots_sorted):
+            lane_by_id[root_id] = float(root_index * 2)
+
+        lane_queue = deque(roots_sorted)
+        visited: set[str] = set()
+        while lane_queue:
+            node_id = lane_queue.popleft()
+            if node_id in visited:
+                continue
+            visited.add(node_id)
+
+            base_lane = lane_by_id.get(node_id, 0.0)
+            outgoing = children_by_id.get(node_id, [])
+            if not outgoing:
+                continue
+
+            outgoing_sorted = sorted(
+                outgoing,
+                key=lambda item: (item[0], node_order.get(item[1], 10**9)),
+            )
+            center = (len(outgoing_sorted) - 1) / 2
+
+            for child_index, (_, child_id) in enumerate(outgoing_sorted):
+                proposed_lane = base_lane + ((child_index - center) * 1.5)
+                current_lane = lane_by_id.get(child_id)
+
+                if current_lane is None:
+                    lane_by_id[child_id] = proposed_lane
+                else:
+                    lane_by_id[child_id] = (current_lane + proposed_lane) / 2
+
+                lane_queue.append(child_id)
+
+        positions: Dict[str, Tuple[int, int]] = {}
+        fallback_depth = max(depth_by_id.values(), default=0) + 1
+
+        for fallback_index, node in enumerate(self.nodes):
+            depth = depth_by_id.get(node.id, fallback_depth + fallback_index)
+            lane = lane_by_id.get(node.id, float(fallback_index))
+            positions[node.id] = (
+                int(start_x + (depth * horizontal_gap)),
+                int(start_y + (lane * vertical_gap)),
+            )
+
+        return positions
+
+    def _collect_source_handles(self) -> Dict[str, List[str]]:
+        handles_by_node: Dict[str, List[str]] = {}
+
+        for src_name, conn_types in self.connections.items():
+            src_node = self.get_node_by_name(src_name)
+            src_node_type = src_node.type if src_node else ""
+            ordered_handles: List[str] = []
+            for connection_type, conn_arrays in conn_types.items():
+                for branch_index, _ in enumerate(conn_arrays):
+                    handle_id = self._connection_to_source_handle(
+                        node_type=src_node_type,
+                        connection_type=connection_type,
+                        branch_index=branch_index,
+                    )
+                    if handle_id not in ordered_handles:
+                        ordered_handles.append(handle_id)
+
+            if ordered_handles:
+                handles_by_node[src_name] = ordered_handles
+
+        return handles_by_node
+
+    @staticmethod
+    def _connection_to_source_handle(
+        node_type: str,
+        connection_type: str,
+        branch_index: int,
+    ) -> str:
+        normalized_type = (node_type or "").strip().upper()
+        normalized = (connection_type or "").strip()
+
+        if normalized not in ("", "main", "out"):
+            return normalized
+
+        if normalized_type == "IF":
+            return "true" if branch_index == 0 else "false"
+
+        if normalized_type == "SWITCH":
+            return f"output-{branch_index}"
+
+        if normalized in ("", "main", "out"):
+            return "out"
+
+        return normalized
+
+    @staticmethod
+    def _resolve_handle_center(
+        node_output: Dict[str, Any],
+        handle_kind: str,
+        handle_id: str,
+    ) -> Tuple[Optional[float], Optional[float]]:
+        handle_bounds = node_output.get("handleBounds", {}) or {}
+        handles = handle_bounds.get(handle_kind) or []
+        handle = next((h for h in handles if h.get("id") == handle_id), None)
+        if not handle:
+            return None, None
+
+        position = node_output.get("position", {}) or {}
+        x = float(position.get("x", 0)) + float(handle.get("x", 0)) + (float(handle.get("width", 0)) / 2)
+        y = float(position.get("y", 0)) + float(handle.get("y", 0)) + (float(handle.get("height", 0)) / 2)
+        return x, y
+
+    def _build_edges(self, node_outputs_by_id: Optional[Dict[str, Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
         name_to_id = {n.name: n.id for n in self.nodes}
         edges, seen = [], set()
 
@@ -626,17 +1162,73 @@ class SimpleWorkflow:
             src_id = name_to_id.get(src_name)
             if not src_id:
                 continue
-            for _, conn_arrays in conn_types.items():
-                for conn_array in conn_arrays:
-                    for conn in conn_array:
+            src_node = self.get_node_by_name(src_name)
+            src_node_type = src_node.type if src_node else ""
+            for connection_type, conn_arrays in conn_types.items():
+                for branch_index, conn_array in enumerate(conn_arrays):
+                    # ── FIX START (added conn_index loop) ──────────────────────────────
+                    # OLD CODE (2 lines):
+                    #   source_handle = self._connection_to_source_handle(
+                    #       node_type=src_node_type,
+                    #       connection_type=connection_type,
+                    #       branch_index=branch_index,
+                    #   )
+                    #   for conn in conn_array:
+                    #
+                    # WHY BROKEN: When LLM puts both Notion and Slack inside the same
+                    # branch array (branch_index=0 for both), _connection_to_source_handle
+                    # returns "true" for every connection — so the false branch never fires.
+                    #
+                    # FIX: Enumerate conn_array too. If all targets are packed into one
+                    # array (len(conn_arrays)==1), use conn_index as the branch index so
+                    # first target → "true", second target → "false", etc.
+                    # If the LLM already spreads targets across separate arrays
+                    # (len(conn_arrays)>1), keep using branch_index as before — no change.
+                    for conn_index, conn in enumerate(conn_array):
+                        effective_branch = (
+                            conn_index if len(conn_arrays) == 1 else branch_index
+                        )
+                        source_handle = self._connection_to_source_handle(
+                            node_type=src_node_type,
+                            connection_type=connection_type,
+                            branch_index=effective_branch,
+                        )
+                    # ── FIX END ────────────────────────────────────────────────────────
                         tgt_id = name_to_id.get(conn.node)
                         if not tgt_id:
                             continue
-                        key = (src_id, tgt_id)
+                        key = (src_id, tgt_id, source_handle)
                         if key in seen:
                             continue
                         seen.add(key)
-                        edges.append(WorkflowEdge(src_id, tgt_id).to_output_dict())
+                        source_x = source_y = target_x = target_y = None
+                        if node_outputs_by_id:
+                            src_node_output = node_outputs_by_id.get(src_id)
+                            tgt_node_output = node_outputs_by_id.get(tgt_id)
+                            if src_node_output:
+                                source_x, source_y = self._resolve_handle_center(
+                                    src_node_output,
+                                    "source",
+                                    source_handle,
+                                )
+                            if tgt_node_output:
+                                target_x, target_y = self._resolve_handle_center(
+                                    tgt_node_output,
+                                    "target",
+                                    "in",
+                                )
+                        edges.append(
+                            WorkflowEdge(
+                                src_id,
+                                tgt_id,
+                                source_handle=source_handle,
+                                target_handle="in",
+                                source_x=source_x,
+                                source_y=source_y,
+                                target_x=target_x,
+                                target_y=target_y,
+                            ).to_output_dict()
+                        )
         return edges
 
     def to_dict(self) -> Dict[str, Any]:

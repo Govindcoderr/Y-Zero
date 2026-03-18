@@ -151,6 +151,12 @@ def create_add_node_tool(workflow: SimpleWorkflow, search_engine: NodeSearchEngi
           Triggers:     MANUAL, SCHEDULE, WEBHOOK
           Actions:      HTTP REQUEST, TELEGRAM, SLACK, WHATSAPP, SEND EMAIL, OPENAI, ...
           Conditionals: IF, SWITCH, FILTER
+
+        Branching guide:
+        - Use IF only for one simple boolean split: true/false, yes/no, pass/fail.
+        - Use SWITCH for 3 or more branches.
+        - Use SWITCH also for 2 branches when both branches are explicit separate conditions
+          such as approved/rejected, high/low, email/sms, status/value based routing.
         """
         # Auto-resolve if LLM passes something other than exact name
         resolved_type, reason = search_engine.resolve_node_type(node_type)

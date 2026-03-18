@@ -1,51 +1,19 @@
-# # tools/search_nodes.py
-# from langchain_core.tools import tool
-# from typing import List, Annotated
-# from backend.engines.node_search_engine import NodeSearchEngine
-
-# def create_search_nodes_tool(search_engine: NodeSearchEngine):
-#     @tool
-#     def search_nodes(
-#         query: Annotated[str, "Search query for node types"],
-#         limit: Annotated[int, "Maximum number of results"] = 10
-#     ) -> str:
-#         """Search for available workflow nodes by name or description.
-        
-#         Use this before adding nodes to find the correct node types.
-#         """
-#         results = search_engine.search_by_name(query, limit)
-        
-#         if not results:
-#             return f"No nodes found matching '{query}'"
-        
-#         output = [f"Found {len(results)} nodes matching '{query}':\n"]
-        
-#         for i, result in enumerate(results, 1):
-#             output.append(f"{i}. {result.display_name} ({result.name})")
-#             output.append(f"   Description: {result.description}")
-#             output.append(f"   Version: {result.version}")
-#             output.append("")
-        
-#         return "\n".join(output)
-    
-#     return search_nodes
-
 # tools/search_nodes.py
 """
-Port of n8n node-search.tool.ts — adapted for 3-type node model.
+Port of n8n node-search.tool.ts adapted for the 3-type node model.
 
 Query types:
-  "name"   — sublimeSearch fuzzy match (same as n8n name search)
-  "byType" — list all nodes of a given nodeType (trigger | action | conditional)
+  "name"   - fuzzy match by node name or description
+  "byType" - list all nodes of a given nodeType (trigger | action | conditional)
 
-Batch queries supported — pass multiple in one call.
-SEARCH_LIMIT = 5 per query (same as n8n).
+Batch queries are supported.
+SEARCH_LIMIT = 5 per query.
 """
 from langchain_core.tools import tool
 from typing import Annotated, List
 from ..engines.node_search_engine import NodeSearchEngine
 
-SEARCH_LIMIT = 5   # mirrors n8n SEARCH_LIMIT
+SEARCH_LIMIT = 10
 
 
 def create_search_nodes_tool(search_engine: NodeSearchEngine):
@@ -54,7 +22,7 @@ def create_search_nodes_tool(search_engine: NodeSearchEngine):
     def search_nodes(
         queries: Annotated[
             List[dict],
-            """Array of search queries (batch — same as n8n pattern).
+            """Array of search queries.
 
 Each query dict:
   { "queryType": "name",   "query": "telegram" }
@@ -64,13 +32,19 @@ Each query dict:
   { "queryType": "byType", "nodeType": "conditional" }
 
 queryType values:
-  "name"   — fuzzy search by name / displayName / alias / description
-  "byType" — list all nodes of a specific type
+  "name"   - fuzzy search by name / displayName / alias / description
+  "byType" - list all nodes of a specific type
 
 nodeType values (for byType):
-  "trigger"     — nodes that START the workflow  (MANUAL, SCHEDULE, WEBHOOK)
-  "action"      — nodes that DO something        (HTTP REQUEST, TELEGRAM, OPENAI, ...)
-  "conditional" — nodes that BRANCH the workflow (IF, SWITCH, FILTER)
+  "trigger"     - nodes that start the workflow (MANUAL, SCHEDULE, WEBHOOK)
+  "action"      - nodes that do something (HTTP REQUEST, TELEGRAM, OPENAI, ...)
+  "conditional" - nodes that branch the workflow (IF, SWITCH, FILTER)
+
+Branching guide:
+  - Use IF only for one simple boolean split: true/false, yes/no, pass/fail.
+  - Use SWITCH for 3 or more branches.
+  - Use SWITCH also for 2 branches when they are two explicit distinct conditions
+    or value-based routes, not a plain true/false fallback.
 
 Always call this BEFORE add_node to confirm the correct node name.
 """,
@@ -78,13 +52,13 @@ Always call this BEFORE add_node to confirm the correct node name.
     ) -> str:
         """
         Search available workflow nodes.
-        
-        Node types in this system:
-          trigger     — starts the workflow (MANUAL, SCHEDULE, WEBHOOK)
-          action      — performs an operation (HTTP REQUEST, SLACK, OPENAI, ...)
-          conditional — branches the flow (IF, SWITCH, FILTER)
 
-        Use 'byType' to see ALL nodes of a type.
+        Node types in this system:
+          trigger     - starts the workflow (MANUAL, SCHEDULE, WEBHOOK)
+          action      - performs an operation (HTTP REQUEST, SLACK, OPENAI, ...)
+          conditional - branches the flow (IF, SWITCH, FILTER)
+
+        Use 'byType' to see all nodes of a type.
         Use 'name' to fuzzy-search by keyword.
         Multiple queries can be batched in one call.
         """
@@ -96,7 +70,6 @@ Always call this BEFORE add_node to confirm the correct node name.
         for q in queries:
             query_type = q.get("queryType", "name")
 
-            # ── NAME SEARCH .....
             if query_type == "name":
                 query_term = q.get("query", "").strip()
                 if not query_term:
@@ -113,7 +86,6 @@ Always call this BEFORE add_node to confirm the correct node name.
                         f'Found {len(results)} nodes matching "{query_term}":{formatted}'
                     )
 
-            # ── BY TYPE SEARCH ─────────────────────────────────────────────
             elif query_type == "byType":
                 node_type = q.get("nodeType", "").strip().lower()
                 if node_type not in ("trigger", "action", "conditional"):

@@ -335,6 +335,10 @@ class EdgeOut(BaseModel):
     target: str
     sourceHandle: str
     targetHandle: str
+    sourceX: Optional[float] = None
+    sourceY: Optional[float] = None
+    targetX: Optional[float] = None
+    targetY: Optional[float] = None
 
 
 class WorkflowResponse(BaseModel):
