@@ -46,7 +46,7 @@ def _sync_load() -> List[Dict[str, Any]]:
         result = es.search(
             index=ES_INDEX,
             body={
-                "size": 10000,   # max 10k nodes ek baar mein
+                "size": 10,   # max 100 nodes ek baar mein
                 "query": {"match_all": {}},
                 "_source": ["_raw"],
             },

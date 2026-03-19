@@ -177,8 +177,8 @@ import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 import httpx
-from backend.utils.node_loader import fetch_nodes_from_api
-from backend.utils.node_normalizer import load_and_normalize_nodes
+# from backend.utils.node_loader import fetch_nodes_from_api
+# from backend.utils.node_normalizer import load_and_normalize_nodes
 from backend.utils.es_indexer import reindex_all
 
 load_dotenv()

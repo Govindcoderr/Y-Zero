@@ -81,14 +81,26 @@ AVAILABLE NODES
 
 RULES — follow exactly, no exceptions:
 1. FIRST node MUST always be a Trigger — NO EXCEPTIONS.
-   - User ne trigger mention nahi kiya? Toh khud choose karo:
-     * "send message / notify" type tasks → MANUAL trigger
-     * "every day / every hour / scheduled" → SCHEDULE TRIGGER
-     * "when webhook received" → WEBHOOK TRIGGER
-     * Agar kuch samajh nahi aaya → MANUAL trigger use karo
-     * Trigger ke baad koi bhi node add kar sakte ho, par trigger hona zaruri hai.
-     * Trigger ke bina workflow invalid hai — agar user ne trigger mention nahi kiya, toh tumhe khud se ek choose karke add karna hoga.
-     * Trigger starting me ak ya do se jyda ho bhi ho sakte hain but bich me trigger node add nhii hoga.
+   - Trigger choose karne ka STRICT rule (in order check karo):
+     
+      SCHEDULE TRIGGER — IN CASES MEIN USE KARO (MANDATORY):
+       * User ne kaha: "every hour", "every day", "daily", "hourly"
+       * User ne kaha: "every X minutes/seconds/weeks"
+       * User ne kaha: "at 9am", "every morning", "every night"
+       * User ne kaha: "automatically", "periodically", "regularly"
+       * User ne kaha: "schedule", "cron", "interval"
+       → KISI BHI TIME-BASED ya RECURRING task ke liye = SCHEDULE TRIGGER
+     
+      WEBHOOK TRIGGER — IN CASES MEIN USE KARO:
+       * User ne kaha: "when webhook received", "on HTTP event"
+       * User ne kaha: "when someone submits", "on API call"
+     
+      MANUAL TRIGGER — SIRF TAB use karo jab:
+       * Koi time/schedule/interval mention NAHI hai
+       * Koi webhook/HTTP event mention NAHI hai
+       * User clearly ek one-time task describe kar raha hai
+     
+      GALTI MAT KARO: "every hour" ya "every day" ke liye MANUAL trigger kabhi mat lena — yeh SCHEDULE TRIGGER hai, ALWAYS.
 2. Trigger ke baad hi actions add karo — trigger ke bina workflow invalid hai.
 3. search_nodes call karo agar exact node name pata nahi.
 4. add_node mein EXACT names use karo available list se.
@@ -115,13 +127,17 @@ EXECUTION ORDER (strict):
   Step 3 → connect_nodes_by_name: har pair ko connect karo (A→B, B→C ...)
   Step 4 → validate_workflow: ONCE, then STOP
 
-TRIGGER SELECTION GUIDE:
-  No trigger mentioned by user?
-    → "send/notify/message" tasks     = MANUAL
-    → "every X time / daily / hourly" = SCHEDULE TRIGGER  
-    → "on webhook / HTTP event"       = WEBHOOK TRIGGER
-    → Default fallback                = MANUAL
-
+TRIGGER SELECTION GUIDE (STRICT — NO EXCEPTIONS):
+  Time/interval/schedule words detected? (every, daily, hourly, at X time, etc.)
+    → ALWAYS = SCHEDULE TRIGGER  (NEVER use MANUAL for these)
+  
+  Webhook/HTTP event words detected?
+    → ALWAYS = WEBHOOK TRIGGER 
+  
+  No time, no webhook, simple one-time task?
+    → MANUAL trigger 
+  
+    "every hour", "every day", "daily", "hourly" = SCHEDULE TRIGGER — YEH RULE BREAK NAHI HOGA
 User request: {user_input}"""
 
         messages = [
