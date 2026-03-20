@@ -87,7 +87,7 @@ if st.button(" Build Workflow", type="primary", use_container_width=False):
     elif not is_healthy:
         st.error("⭕ API not available")
     else:
-        with st.spinner("🔄 Building workflow…"):
+        with st.spinner("-->> Building workflow…"):
             result = build_workflow(user_input)
             if result:
                 st.session_state.workflow_state = result

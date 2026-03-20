@@ -56,7 +56,7 @@ Y‑Zero is designed to be:
 
 ---
 
-## 🔄 End‑to‑End Flow (Request → Workflow Response)
+##-->> End‑to‑End Flow (Request → Workflow Response)
 
 ### 1) User Input (Streamlit)
 - User enters a description (e.g., “Fetch weather every hour and notify Slack”).

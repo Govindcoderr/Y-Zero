@@ -33,7 +33,7 @@ async def reindex_all(
         print("⏭️  ES not available — skipping reindex")
         return
 
-    print(f"🔄 Starting ES reindex of {len(node_types)} nodes...")
+    print(f"-->> Starting ES reindex of {len(node_types)} nodes...")
 
     # Run bulk index in thread (elasticsearch-py is sync)
     loop = asyncio.get_event_loop()

@@ -31,7 +31,7 @@ async def interactive_session():
         if not user_input:
             continue
         
-        print("\n🔄 Building workflow...\n")
+        print("\n-->> Building workflow...\n")
         
         try:
             result = await orchestrator.process_message(user_input, state)

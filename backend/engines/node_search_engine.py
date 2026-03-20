@@ -569,7 +569,7 @@ class NodeSearchEngine:
                 has_old_object = props.get("_raw", {}).get("type") == "object"
 
                 if has_old_boost or has_old_object:
-                    print(f"🔄 Old ES mapping detected — recreating index '{ES_INDEX}'")
+                    print(f"-->> Old ES mapping detected — recreating index '{ES_INDEX}'")
                     self._es.indices.delete(index=ES_INDEX)
                 else:
                     print(f"--> ES index '{ES_INDEX}' exists with correct mapping")
@@ -814,7 +814,7 @@ class NodeSearchEngine:
                     id=name,
                     document=_node_to_doc(node),
                 )
-                print(f"🔄 ES node updated: {name}")
+                print(f"-->> ES node updated: {name}")
             except Exception as e:
                 print(f"⚠️  ES update failed for '{name}': {e}")
 

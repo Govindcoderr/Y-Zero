@@ -45,7 +45,7 @@
 #     yield
 
 #     orchestrator = None
-#     print("🔄 Orchestrator shutdown complete")
+#     print("-->> Orchestrator shutdown complete")
 
 
 # app = FastAPI(
@@ -241,7 +241,7 @@ async def lifespan(app: FastAPI):
         if not api_key:
             raise ValueError("GROQ_API_KEY not set in environment variables")
         orchestrator = WorkflowBuilderOrchestrator(api_key=api_key, node_types=NODE_TYPES)
-        print(" 🔄 Orchestrator initialized successfully")
+        print("-->> Orchestrator initialized successfully")
     except Exception as e:
         print(f"X Failed to initialize orchestrator: {e}")
         raise
@@ -257,7 +257,7 @@ async def lifespan(app: FastAPI):
     yield  # ← server runs here
     
     orchestrator = None
-    print("🔄 Orchestrator shutdown complete")
+    print("-->> Orchestrator shutdown complete")
 
 
 app = FastAPI(
