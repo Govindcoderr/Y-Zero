@@ -18,7 +18,7 @@
 # try:
 #     with open("node_types.json", "r", encoding="utf-8") as f:
 #         NODE_TYPES = json.load(f)
-#     print(f"✅ Loaded {len(NODE_TYPES)} node types")
+#     print(f"-->> Loaded {len(NODE_TYPES)} node types")
 # except FileNotFoundError:
 #     print("⚠️  node_types.json not found, using empty list")
 #     NODE_TYPES = []
@@ -37,7 +37,7 @@
 #         orchestrator = WorkflowBuilderOrchestrator(
 #             api_key=api_key, node_types=NODE_TYPES
 #         )
-#         print("✅ Orchestrator initialized successfully")
+#         print("-->> Orchestrator initialized successfully")
 #     except Exception as e:
 #         print(f"❌ Failed to initialize orchestrator: {e}")
 #         raise
@@ -174,14 +174,15 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 import json
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 import httpx
 # from backend.utils.node_loader import fetch_nodes_from_api
 # from backend.utils.node_normalizer import load_and_normalize_nodes
 from backend.utils.es_indexer import reindex_all
+from backend.utils.config import Config
 
-load_dotenv()
+# load_dotenv()
 
 from submain import WorkflowBuilderOrchestrator
 
@@ -189,7 +190,7 @@ from submain import WorkflowBuilderOrchestrator
 # try:
 #     with open("node_types.json", "r", encoding="utf-8") as f:
 #         NODE_TYPES = json.load(f)
-#     print(f"✅ Loaded {len(NODE_TYPES)} node types")
+#     print(f"-->> Loaded {len(NODE_TYPES)} node types")
 # except FileNotFoundError:
 #     print("⚠️  node_types.json not found, using empty list")
 #     NODE_TYPES = []
@@ -198,7 +199,7 @@ from submain import WorkflowBuilderOrchestrator
 # from backend.utils.node_normalizer import load_and_normalize_nodes
 
 # NODE_TYPES = load_and_normalize_nodes()
-# print(f"✅ Loaded {len(NODE_TYPES)} node types")
+# print(f"-->> Loaded {len(NODE_TYPES)} node types")
 
 
 orchestrator: Optional[WorkflowBuilderOrchestrator] = None
@@ -228,20 +229,21 @@ async def lifespan(app: FastAPI):
 
     if not NODE_TYPES:
         raise RuntimeError(
-            "❌ No nodes loaded from Elasticsearch! "
+            "No nodes loaded from Elasticsearch! "
             "Make sure ES is running and index is populated."
         )
 
-    print(f"✅ {len(NODE_TYPES)} nodes loaded from Elasticsearch")
+    # print(f"--> {len(NODE_TYPES)} nodes loaded from Elasticsearch")
 
     try:
-        api_key = os.getenv("GROQ_API_KEY")
+        # api_key = os.getenv("GROQ_API_KEY")
+        api_key = Config.GROQ_API_KEY
         if not api_key:
             raise ValueError("GROQ_API_KEY not set in environment variables")
         orchestrator = WorkflowBuilderOrchestrator(api_key=api_key, node_types=NODE_TYPES)
-        print("✅ Orchestrator initialized successfully")
+        print(" 🔄 Orchestrator initialized successfully")
     except Exception as e:
-        print(f"❌ Failed to initialize orchestrator: {e}")
+        print(f"X Failed to initialize orchestrator: {e}")
         raise
 
     #3. ES reindex (runs after orchestrator so search_engine exists) ──
@@ -250,7 +252,7 @@ async def lifespan(app: FastAPI):
         await reindex_all(orchestrator.search_engine, NODE_TYPES)
     except Exception as e:
         # ES failure must NOT crash the server
-        print(f"⚠️  ES reindex skipped: {e}")
+        print(f"X ES reindex skipped: {e}")
  
     yield  # ← server runs here
     
@@ -422,7 +424,7 @@ async def build_workflow(request: WorkflowRequest):
         if not greeter_proceed:
             # Greeter handled it — no workflow built, just return the reply
             reply = extract_assistant_message(result, fallback="Hello! How can I help you?")
-            print(f"🤝 Greeter response returned to frontend: {reply[:80]}...")
+            print(f"--> Greeter response returned to frontend: {reply[:80]}...")
             return {
                 "id":         1,
                 "name":       "Chat",
@@ -459,7 +461,7 @@ async def build_workflow(request: WorkflowRequest):
         #         break
 
         assistant_message = extract_assistant_message(
-            result, fallback="✅ Workflow built successfully"
+            result, fallback="-->> Workflow built successfully"
         )
 
         return {

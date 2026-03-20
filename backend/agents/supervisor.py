@@ -9,7 +9,7 @@ from typing import Literal, Dict, Any
 
 class SupervisorDecision(BaseModel):
     next_agent: Literal["discovery", "builder", "configurator", "responder"] = Field(
-        description="Which agent should act next"
+        description="Which agent should act next" 
     )
     reasoning: str = Field(description="Why this agent should act", default="")
 
@@ -27,7 +27,7 @@ class SupervisorAgent:
         has_categorization = state.get("categorization") is not None
         has_best_practices = state.get("best_practices") is not None
         node_count = len(workflow.nodes)
-        print(f"Supervisor: Workflow has {node_count} nodes")
+        print(f" ->> Supervisor: Workflow has {node_count} nodes")
 
         completed_phases = set()
         for entry in state.get("coordination_log", []):

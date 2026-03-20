@@ -27,7 +27,7 @@ def run_servers():
     try:
         import requests
         requests.get("http://localhost:8000/health", timeout=2)
-        print("✅ FastAPI server is running!")
+        print("-->> FastAPI server is running!")
     except:
         print("⚠️  FastAPI startup - waiting...")
     
@@ -42,7 +42,7 @@ def run_servers():
     )
     
     time.sleep(2)
-    print("✅ Streamlit frontend is running!")
+    print("-->> Streamlit frontend is running!")
     
     print("=" * 50)
     print("\n🌐 Opening browser...\n")
@@ -54,7 +54,7 @@ def run_servers():
         print("Please open http://localhost:8501 in your browser")
     
     print("=" * 50)
-    print("📋 Available URLs:")
+    print("--> Available URLs:")
     print("  • Streamlit Frontend: http://localhost:8501")
     print("  • FastAPI Server: http://localhost:8000")
     print("  • API Docs: http://localhost:8000/docs")
@@ -79,7 +79,7 @@ def run_servers():
             api_process.kill()
             streamlit_process.kill()
         
-        print("✅ Servers stopped")
+        print("-->> Servers stopped")
 
 if __name__ == "__main__":
     try:

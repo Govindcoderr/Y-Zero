@@ -428,7 +428,7 @@ class NodeSearchEngine:
 
             # Ping to verify connection
             if self._es.ping():
-                print(f"✅ Elasticsearch connected: {es_url}")
+                print(f"-->> Elasticsearch connected: {es_url}")
                 self._es_available = True
                 self._ensure_index()
                 self._index_nodes()
@@ -441,7 +441,7 @@ class NodeSearchEngine:
             self._es = None
 
         print(
-            f"✅ NodeSearchEngine ready | "
+            f"-->> NodeSearchEngine ready | "
             f"{len(self.node_types)} nodes | "
             f"backend={'elasticsearch' if self._es_available else 'in-memory fallback'}"
         )
@@ -572,11 +572,11 @@ class NodeSearchEngine:
                     print(f"🔄 Old ES mapping detected — recreating index '{ES_INDEX}'")
                     self._es.indices.delete(index=ES_INDEX)
                 else:
-                    print(f"📦 ES index '{ES_INDEX}' exists with correct mapping")
+                    print(f"--> ES index '{ES_INDEX}' exists with correct mapping")
                     return
 
             self._es.indices.create(index=ES_INDEX, body=INDEX_MAPPING)
-            print(f"📦 ES index '{ES_INDEX}' created with correct mapping")
+            print(f"--> ES index '{ES_INDEX}' created with correct mapping")
 
         except Exception as e:
             print(f"⚠️  Could not create ES index: {e}")
@@ -604,7 +604,7 @@ class NodeSearchEngine:
 
         try:
             success, errors = bulk(self._es, actions, raise_on_error=False)
-            print(f"📥 ES indexed {success} nodes | errors: {len(errors) if errors else 0}")
+            print(f"-->> ES indexed {success} nodes | errors: {len(errors) if errors else 0}")
             if errors:
                 for err in errors[:3]:
                     print(f"   ⚠️  Index error: {err}")

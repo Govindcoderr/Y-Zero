@@ -56,7 +56,7 @@
 #             return "⚠️  Validation warnings:\n- " + "\n- ".join(issues)
 
 #         node_summary = " → ".join(f"{n.name}({n.type})" for n in workflow.nodes)
-#         return f"✅ Validation passed! Flow: {node_summary}"
+#         return f"-->> Validation passed! Flow: {node_summary}"
 
 #     return validate_workflow 
 
@@ -221,11 +221,11 @@ def create_validate_workflow_tool(workflow: SimpleWorkflow):
         if fixes_applied:
             fixes_text = "\n".join(fixes_applied)
             return (
-                f"✅ Validation passed! (with auto-fixes)\n\n"
+                f"-->> Validation passed! (with auto-fixes)\n\n"
                 f"Auto-fixes applied:\n{fixes_text}\n\n"
                 f"Final flow: {node_summary}"
             )
 
-        return f"✅ Validation passed!\nFlow: {node_summary}"
+        return f"-->> Validation passed!\nFlow: {node_summary}"
 
     return validate_workflow

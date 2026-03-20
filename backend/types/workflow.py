@@ -14,7 +14,7 @@
 #     """NodeSearchEngine init pe call hota hai — ek baar registry populate karo."""
 #     global _NODE_REGISTRY
 #     _NODE_REGISTRY = {n.get("name", ""): n for n in node_types if n.get("name")}
-#     print(f"📋 Node registry: {len(_NODE_REGISTRY)} nodes registered")
+#     print(f"--> Node registry: {len(_NODE_REGISTRY)} nodes registered")
 
 
 # # ── Icon URL builder .....
@@ -575,7 +575,7 @@ def register_node_types(node_types: List[Dict[str, Any]]) -> None:
     """NodeSearchEngine init pe call hota hai — ek baar registry populate karo."""
     global _NODE_REGISTRY
     _NODE_REGISTRY = {n.get("name", ""): n for n in node_types if n.get("name")}
-    print(f"📋 Node registry: {len(_NODE_REGISTRY)} nodes registered")
+    print(f"--> Node registry: {len(_NODE_REGISTRY)} nodes registered")
 
 
 # ── Icon URL builder .....

@@ -190,7 +190,7 @@ def create_add_node_tool(workflow: SimpleWorkflow, search_engine: NodeSearchEngi
             note = f" (auto-resolved from '{node_type}' via {reason})"
 
         return (
-            f"✅ Added node '{name}'"
+            f"-->> Added node '{name}'"
             f"\n   type  = {resolved_type}{note}"
             f"\n   id    = {node_id}"
             f"\n   total nodes = {len(workflow.nodes)}"

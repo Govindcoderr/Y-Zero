@@ -45,7 +45,7 @@ class WorkflowBuilderOrchestrator:
 
         # Initialize search engine (stateless - can be shared)
         self.search_engine = NodeSearchEngine(node_types)
-        print(f"✅ Node search engine initialized with {len(node_types)} node types")
+        print(f" --> Node search engine initialized with {len(node_types)} node types")
 
         # Agents that don't depend on per-request workflow state
         self.greeter = GreeterAgent(self.llm_fast)  
@@ -54,7 +54,7 @@ class WorkflowBuilderOrchestrator:
 
         # Build graph (builder/configurator tools are recreated per request)
         self.graph = self._build_graph()
-        print("✅ LangGraph workflow graph compiled successfully")
+        print(" --> LangGraph workflow graph compiled successfully")
 
     def _create_request_tools(self, workflow: SimpleWorkflow):
         """
@@ -150,7 +150,7 @@ class WorkflowBuilderOrchestrator:
           - Passes control to supervisor → workflow pipeline
         """
         user_message = self._extract_last_user_message(state)
-        print(f"🤝 Greeter agent checking: {user_message[:60]}...")
+        print(f" --> Greeter agent checking: {user_message[:60]}...")
 
         result = await self.greeter.handle(user_message)
         intent = result["intent"]
@@ -269,7 +269,7 @@ class WorkflowBuilderOrchestrator:
         )
 
         response = (
-            f"✅ Workflow '{workflow.name}' has been built successfully!\n\n"
+            f"-->> Workflow '{workflow.name}' has been built successfully!\n\n"
             f"📊 Summary:\n"
             f"  - {len(workflow.nodes)} nodes added\n"
             f"  - {connection_count} connections created\n\n"
@@ -278,7 +278,7 @@ class WorkflowBuilderOrchestrator:
             + "\n\nThe workflow is ready to use!"
         )
 
-        print(f"✅ Responder: workflow complete with {len(workflow.nodes)} nodes")
+        print(f"-->> Responder: workflow complete with {len(workflow.nodes)} nodes")
         return {"messages": [{"role": "assistant", "content": response}]}
 
     # -------------------------------------------------------------------------

@@ -39,7 +39,7 @@ async def reindex_all(
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, _sync_reindex, search_engine, node_types)
 
-    print("✅ ES reindex complete")
+    print("-->> ES reindex complete")
 
 
 def _sync_reindex(
@@ -66,6 +66,6 @@ def _sync_reindex(
 
     try:
         success, errors = bulk(es, actions, raise_on_error=False)
-        print(f"   📥 {success} nodes indexed | {len(errors) if errors else 0} errors")
+        print(f"   -->> {success} nodes indexed | {len(errors) if errors else 0} errors")
     except Exception as e:
         print(f"   ❌ Reindex failed: {e}")

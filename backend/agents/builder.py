@@ -192,8 +192,8 @@ User request: {user_input}"""
                 # KEY FIX: Once validate_workflow passes, we are done.
                 # Without this the LLM keeps calling get_node_details
                 # in a loop trying to "fix" the workflow, burning 20+ iterations.
-                if tc["name"] == "validate_workflow" and "✅" in str(result):
-                    print(f"   ✅ Validation passed — stopping builder loop")
+                if tc["name"] == "validate_workflow" and "-->>" in str(result):
+                    print(f"   -->> Validation passed — stopping builder loop")
                     done = True
                     break
 

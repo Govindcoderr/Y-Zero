@@ -135,7 +135,7 @@ if st.session_state.workflow_state and st.session_state.workflow_state.get("node
                 "trigger":     "⚡",
                 "action":      "⚙️",
                 "conditional": "🔀",
-            }.get(node_type_acts, "📦")
+            }.get(node_type_acts, "-->")
 
             css_class = f"node-{node_type_acts}"
 

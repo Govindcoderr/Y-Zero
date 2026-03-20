@@ -63,7 +63,7 @@ def get_llm(temperature: float = None) -> ChatGroq:
     requested = Config.LLM_MODEL or DEFAULT_TOOL_MODEL
     model = _safe_model(requested, TOOL_CAPABLE_MODELS, DEFAULT_TOOL_MODEL, "LLM_MODEL")
 
-    print(f"🤖 Tool LLM: {model}")
+    print(f"-->Tool LLM: {model}")
     return ChatGroq(
         model=model,
         groq_api_key=api_key,
@@ -82,7 +82,7 @@ def get_llm_no_tools(temperature: float = None) -> ChatGroq:
     # For no-tools we don't require tool capability, just valid chat model
     model = _safe_model(requested, set(), DEFAULT_FAST_MODEL, "LLM_MODEL_FAST")
 
-    print(f"🤖 Fast LLM: {model}")
+    print(f"-->Fast LLM: {model}")
     return ChatGroq(
         model=model,
         groq_api_key=api_key,

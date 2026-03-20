@@ -330,7 +330,7 @@ class GreeterAgent:
             ])
             intent = response.content.strip().upper()
         except Exception as e:
-            print(f"⚠️  Intent classification failed: {e} — defaulting to WORKFLOW_REQUEST")
+            print(f" X Intent classification failed: {e} — defaulting to WORKFLOW_REQUEST")
             return "WORKFLOW_REQUEST"
 
         valid = {
@@ -352,7 +352,7 @@ class GreeterAgent:
             ])
             return response.content.strip()
         except Exception as e:
-            print(f"⚠️  Greeter response failed: {e}")
+            print(f"X  Greeter response failed: {e}")
             return "Hello! I'm your Workflow Builder assistant. Describe the automation you'd like to build!"
 
     async def handle(
@@ -375,7 +375,7 @@ class GreeterAgent:
             }
         """
         intent = await self.classify_intent(user_message)
-        print(f"🤝 Greeter: intent = {intent}")
+        print(f" # Greeter: intent = {intent}")
 
         # ── Forward to pipeline ───────────────────────────────────
         if intent in ("WORKFLOW_REQUEST", "WORKFLOW_MODIFY"):
@@ -410,11 +410,11 @@ class GreeterAgent:
         """Build a human-readable answer about current workflow state."""
         if workflow is None or not workflow.nodes:
             return (
-                "📭 No workflow has been built yet in this session.\n"
+                " No workflow has been built yet in this session.\n"
                 "Describe what you'd like to automate and I'll build it for you!"
             )
 
-        lines = [f"📊 **Current Workflow** — {len(workflow.nodes)} node(s):"]
+        lines = [f"->> **Current Workflow** — {len(workflow.nodes)} node(s):"]
         for i, node in enumerate(workflow.nodes, 1):
             lines.append(f"  {i}. **{node.name}** (`{node.type}` / {node.node_type})")
 
@@ -425,7 +425,7 @@ class GreeterAgent:
             for arrays in conns.values()
             for arr in arrays
         )
-        lines.append(f"\n🔗 Connections: {edge_count} edge(s)")
+        lines.append(f"\n-->> Connections: {edge_count} edge(s)")
 
         lines.append("\nYou can say things like:")
         lines.append('  • "Add a Slack node after the Telegram node"')

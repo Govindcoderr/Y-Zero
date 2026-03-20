@@ -98,7 +98,7 @@ def create_update_parameters_tool(workflow: SimpleWorkflow):
 
         changed_keys = list(parameters.keys())
         return (
-            f"✅ Updated '{node_name}' ({node.type})\n"
+            f"-->> Updated '{node_name}' ({node.type})\n"
             f"   Changed keys: {changed_keys}\n"
             f"   Parameters now: {node.parameters}"
         )

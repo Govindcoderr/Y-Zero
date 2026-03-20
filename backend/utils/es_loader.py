@@ -76,7 +76,7 @@ def _sync_load() -> List[Dict[str, Any]]:
                 except Exception as e:
                     print(f"⚠️  Could not decode node {hit.get('_id')}: {e}")
 
-        print(f"📦 Loaded {len(nodes)} nodes from Elasticsearch")
+        print(f"--> Loaded {len(nodes)} nodes from Elasticsearch")
         return nodes
 
     except Exception as e:

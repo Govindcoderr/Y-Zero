@@ -15,7 +15,7 @@ async def interactive_session():
         node_types=node_types
     )
     
-    print("🤖 Workflow Builder Assistant")
+    print("-->Workflow Builder Assistant")
     print("=" * 50)
     print("Describe the workflow you want to build...\n")
     

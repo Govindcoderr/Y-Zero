@@ -224,7 +224,7 @@ def load_and_normalize_nodes(
                         all_nodes.append(json.loads(line))
                     except json.JSONDecodeError as e:
                         print(f"⚠️  Skipping invalid JSONL line: {e}")
-        print(f"📦 Loaded {len(all_nodes)} nodes from JSONL: {jsonl_file}")
+        print(f"--> Loaded {len(all_nodes)} nodes from JSONL: {jsonl_file}")
 
     # Load JSON (array or object)
     if json_file and os.path.exists(json_file):
@@ -235,11 +235,11 @@ def load_and_normalize_nodes(
         elif isinstance(data, dict):
             # Some formats wrap in {"nodes": [...]}
             all_nodes.extend(data.get("nodes", data.get("node_types", [])))
-        print(f"📦 Loaded from JSON: {json_file}")
+        print(f"--> Loaded from JSON: {json_file}")
 
     if not all_nodes:
         print("⚠️  No node files found. Set NODES_JSONL_PATH or NODES_JSON_PATH env var.")
 
     normalized = normalize_nodes(all_nodes)
-    print(f"✅ Normalized {len(normalized)} nodes total")
+    print(f"-->> Normalized {len(normalized)} nodes total")
     return normalized
