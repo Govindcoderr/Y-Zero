@@ -614,6 +614,20 @@ def _infer_output_type(node_type: str) -> str:
             return "conditional"
     return "action"
 
+def resolve_node_role(node: "WorkflowNode", is_start_node: bool) -> str:
+    """
+    Priority 1: node.role explicitly set by builder agent
+    Priority 2: Position-aware fallback — beech ka node kabhi trigger nahi
+    """
+    if node.role in ("trigger", "action", "conditional"):
+        return node.role
+
+    registry_type = _infer_output_type(node.type)
+
+    if not is_start_node:
+        return "conditional" if registry_type == "conditional" else "action"
+
+    return registry_type
 
 def _infer_operation(node_type: str, out_type: str) -> str:
     """
@@ -811,7 +825,6 @@ def _build_node_geometry(
 
 
 # ── WorkflowNode .
-
 @dataclass
 class WorkflowNode:
     id:           str
@@ -820,6 +833,7 @@ class WorkflowNode:
     type_version: int
     position:     Tuple[int, int]
     parameters:   Dict[str, Any] = field(default_factory=dict)
+    role:         Optional[str]  = None  # "trigger" | "action" | "conditional" | None  ← ADD THIS
 
     def to_dict(self) -> Dict[str, Any]:
         """Internal format — used by builder/configurator agents."""
@@ -836,12 +850,13 @@ class WorkflowNode:
         self,
         source_handles: Optional[List[str]] = None,
         position_override: Optional[Tuple[int, int]] = None,
+        is_start_node:     bool                     = False,  
     ) -> Dict[str, Any]:
         """
         Final backend format — matches frontend canvas JSON spec.
         Fully dynamic: all values come from _NODE_REGISTRY or LLM parameters.
         """
-        out_type = _infer_output_type(self.type)
+        out_type = resolve_node_role(self, is_start_node)  
         params   = self._build_output_parameters(_infer_operation(self.type, out_type))
 
         node_data     = _NODE_REGISTRY.get(self.type, {})
@@ -972,14 +987,31 @@ class SimpleWorkflow:
     def get_node_by_name(self, name: str) -> Optional[WorkflowNode]:
         return next((n for n in self.nodes if n.name == name), None)
 
+    def _find_start_node_ids(self) -> set:
+        all_targets = set()
+        for conn_types in self.connections.values():
+            for arrays in conn_types.values():
+                for arr in arrays:
+                    for conn in arr:
+                        all_targets.add(conn.node)
+
+        start_ids = {node.id for node in self.nodes if node.name not in all_targets}
+
+        if not start_ids and self.nodes:
+            start_ids.add(self.nodes[0].id)
+
+        return start_ids
+
     def to_output_dict(self) -> Dict[str, Any]:
         """Final backend format — includes id, viewport, publish."""
+        start_ids = self._find_start_node_ids() 
         node_source_handles = self._collect_source_handles()
         node_positions = self._compute_canvas_positions()
         node_outputs = [
             n.to_output_dict(
                 source_handles=node_source_handles.get(n.name),
                 position_override=node_positions.get(n.id),
+                is_start_node=(n.id in start_ids),  
             )
             for n in self.nodes
         ]

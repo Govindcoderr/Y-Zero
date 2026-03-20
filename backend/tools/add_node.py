@@ -137,6 +137,7 @@ def create_add_node_tool(workflow: SimpleWorkflow, search_engine: NodeSearchEngi
     def add_node(
         node_type: Annotated[str, "The node VALUE name from search results e.g. 'HTTP REQUEST', 'TELEGRAM', 'IF'"],
         name:      Annotated[str, "Descriptive label for this node e.g. 'Fetch Weather Data'"],
+        role:       Annotated[str, "Node ka role: 'trigger' | 'action' | 'conditional'"], 
         parameters: Annotated[Dict[str, Any], "Node parameters as key-value pairs"] = None,
     ) -> str:
         """
@@ -179,6 +180,7 @@ def create_add_node_tool(workflow: SimpleWorkflow, search_engine: NodeSearchEngi
             type_version=1,
             position=(x_pos, y_pos),
             parameters=parameters or {},
+            role=role,   # ← ADD THIS
         )
 
         workflow.add_node(new_node)

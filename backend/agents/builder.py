@@ -79,6 +79,12 @@ AVAILABLE NODES
   Actions     (do something):       {fmt(actions)}
   Conditionals (branch the flow):   {fmt(conds)}
 
+ROLE SELECTION RULES (critical):
+  role='trigger'     → SIRF pehle/start node ke liye
+  role='action'      → Beech mein ya end mein koi bhi node
+                       MailChimp/Gmail/Slack beech mein → HAMESHA role='action'
+  role='conditional' → IF, SWITCH, FILTER only
+  
 RULES — follow exactly, no exceptions:
 1. FIRST node MUST always be a Trigger — NO EXCEPTIONS.
    - Trigger choose karne ka STRICT rule (in order check karo):

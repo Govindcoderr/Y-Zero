@@ -87,6 +87,11 @@ def _is_trigger(node) -> bool:
       2. Registry triggers array non-empty
       3. Keyword match in node.type string
     """
+       # Priority 1: explicit role
+    if node.role == "trigger":
+        return True
+    if node.role in ("action", "conditional"):
+        return False
     node_type = getattr(node, "type", "")
 
     # 1 & 2 — registry lookup (most reliable)
@@ -127,6 +132,7 @@ def _auto_insert_trigger(workflow: SimpleWorkflow) -> str:
         type_version=1,
         position=(100, 300),
         parameters={"operation": "1"},
+        role="trigger",
     )
 
     # Insert at position 0
