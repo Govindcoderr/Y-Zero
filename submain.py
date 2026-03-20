@@ -268,14 +268,35 @@ class WorkflowBuilderOrchestrator:
             for conn_array in connections.values()
         )
 
+        # response = (
+        #     f"-->> Workflow '{workflow.name}' has been built successfully!\n\n"
+        #     f"📊 Summary:\n"
+        #     f"  - {len(workflow.nodes)} nodes added\n"
+        #     f"  - {connection_count} connections created\n\n"
+        #     f"🔗 Workflow structure:\n"
+        #     + ("\n".join(node_lines) if node_lines else "  (empty workflow)")
+        #     + "\n\nThe workflow is ready to use!"
+        # )
+        
+        # Build node lines safely
+        node_lines = [
+            f"  • {node.name} ({node.type})"
+            for node in workflow.nodes
+        ]
+
+        # Optional: build a single-line flow with arrows
+        flow_line = " → ".join(node.name for node in workflow.nodes)
+
         response = (
             f"-->> Workflow '{workflow.name}' has been built successfully!\n\n"
             f"📊 Summary:\n"
             f"  - {len(workflow.nodes)} nodes added\n"
             f"  - {connection_count} connections created\n\n"
             f"🔗 Workflow structure:\n"
-            + ("\n".join(node_lines) if node_lines else "  (empty workflow)")
-            + "\n\nThe workflow is ready to use!"
+            f"{flow_line if flow_line else '  (empty workflow)'}\n\n"
+            f"📋 Detailed nodes:\n"
+            f"{chr(10).join(node_lines) if node_lines else '  (empty workflow)'}\n\n"
+            f"The workflow is ready to use!"
         )
 
         print(f"-->> Responder: workflow complete with {len(workflow.nodes)} nodes")
