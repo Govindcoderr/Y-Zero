@@ -123,10 +123,92 @@
 
 
 
-# tools/add_node.py
+# # tools/add_node.py
+# from langchain_core.tools import tool
+# from typing import Annotated, Dict, Any
+# from ..types.workflow import WorkflowNode, SimpleWorkflow
+# from ..engines.node_search_engine import NodeSearchEngine
+# import uuid
+
+
+# def create_add_node_tool(workflow: SimpleWorkflow, search_engine: NodeSearchEngine):
+
+#     @tool
+#     def add_node(
+#         node_type: Annotated[str, "The node VALUE name from search results e.g. 'HTTP REQUEST', 'TELEGRAM', 'IF'"],
+#         name:      Annotated[str, "Descriptive label for this node e.g. 'Fetch Weather Data'"],
+#         role:       Annotated[str, "Node ka role: 'trigger' | 'action' | 'conditional'"], 
+#         parameters: Annotated[Dict[str, Any], "Node parameters as key-value pairs"] = None,
+#     ) -> str:
+#         """
+#         Add a node to the workflow.
+
+#         IMPORTANT:
+#         - node_type must be an EXACT value from search_nodes results (e.g. 'HTTP REQUEST', 'TELEGRAM')
+#         - name is a human-readable label describing what THIS node does
+#         - Always call search_nodes first to confirm the correct node_type
+
+#         Node type categories:
+#           Triggers:     MANUAL, SCHEDULE, WEBHOOK
+#           Actions:      HTTP REQUEST, TELEGRAM, SLACK, WHATSAPP, SEND EMAIL, OPENAI, ...
+#           Conditionals: IF, SWITCH, FILTER
+
+#         Branching guide:
+#         - Use IF only for one simple boolean split: true/false, yes/no, pass/fail.
+#         - Use SWITCH for 3 or more branches.
+#         - Use SWITCH also for 2 branches when both branches are explicit separate conditions
+#           such as approved/rejected, high/low, email/sms, status/value based routing.
+#         """
+#         # Auto-resolve if LLM passes something other than exact name
+#         resolved_type, reason = search_engine.resolve_node_type(node_type)
+
+#         node_id = str(uuid.uuid4())
+#         x_pos   = 250 + len(workflow.nodes) * 280
+#         y_pos   = 300
+
+#         # Merge provided parameters with node defaults from search engine
+#         node_defaults = {}
+#         details = search_engine.get_node_details(resolved_type)
+#         if details and details.properties:
+#             # properties in node_types.json are the default parameter dict (not a list here)
+#             pass
+
+#         new_node = WorkflowNode(
+#             id=node_id,
+#             name=name,
+#             type=resolved_type,
+#             type_version=1,
+#             position=(x_pos, y_pos),
+#             parameters=parameters or {},
+#             role=role,   # ← ADD THIS
+#         )
+
+#         workflow.add_node(new_node)
+
+#         note = ""
+#         if resolved_type != node_type:
+#             note = f" (auto-resolved from '{node_type}' via {reason})"
+
+#         return (
+#             f"✅ Added node '{name}'"
+#             f"\n   type  = {resolved_type}{note}"
+#             f"\n   id    = {node_id}"
+#             f"\n   total nodes = {len(workflow.nodes)}"
+#         )
+
+#     return add_node
+
+
+
+# backend/tools/add_node.py
+#
+# CHANGE: `role` parameter LLM se nahi liya jata.
+# Role ab poori tarah _NODE_REGISTRY se infer hota hai via _infer_output_type().
+# LLM sirf node_type, name, aur parameters deta hai — role ka koi control nahi.
+
 from langchain_core.tools import tool
 from typing import Annotated, Dict, Any
-from ..types.workflow import WorkflowNode, SimpleWorkflow
+from ..types.workflow import WorkflowNode, SimpleWorkflow, _infer_output_type
 from ..engines.node_search_engine import NodeSearchEngine
 import uuid
 
@@ -135,43 +217,44 @@ def create_add_node_tool(workflow: SimpleWorkflow, search_engine: NodeSearchEngi
 
     @tool
     def add_node(
-        node_type: Annotated[str, "The node VALUE name from search results e.g. 'HTTP REQUEST', 'TELEGRAM', 'IF'"],
-        name:      Annotated[str, "Descriptive label for this node e.g. 'Fetch Weather Data'"],
-        role:       Annotated[str, "Node ka role: 'trigger' | 'action' | 'conditional'"], 
-        parameters: Annotated[Dict[str, Any], "Node parameters as key-value pairs"] = None,
+        node_type: Annotated[
+            str,
+            "The node VALUE name from search results e.g. 'HTTP REQUEST', 'TELEGRAM', 'IF'"
+        ],
+        name: Annotated[
+            str,
+            "Descriptive label for this node e.g. 'Fetch Weather Data'"
+        ],
+        parameters: Annotated[
+            Dict[str, Any],
+            "Node parameters as key-value pairs"
+        ] = None,
     ) -> str:
         """
         Add a node to the workflow.
 
         IMPORTANT:
-        - node_type must be an EXACT value from search_nodes results (e.g. 'HTTP REQUEST', 'TELEGRAM')
+        - node_type must be an EXACT value from search_nodes results
+          (e.g. 'HTTP REQUEST', 'TELEGRAM', 'SCHEDULE TRIGGER')
         - name is a human-readable label describing what THIS node does
         - Always call search_nodes first to confirm the correct node_type
+        - Do NOT pass a 'role' — it is determined automatically from the node catalog
 
-        Node type categories:
-          Triggers:     MANUAL, SCHEDULE, WEBHOOK
-          Actions:      HTTP REQUEST, TELEGRAM, SLACK, WHATSAPP, SEND EMAIL, OPENAI, ...
+        Node type categories (auto-detected from catalog):
+          Triggers:     MANUAL, SCHEDULE TRIGGER, WEBHOOK, TYPEFORM, ...
+          Actions:      HTTP REQUEST, TELEGRAM, SLACK, GMAIL, OPENAI, ...
           Conditionals: IF, SWITCH, FILTER
-
-        Branching guide:
-        - Use IF only for one simple boolean split: true/false, yes/no, pass/fail.
-        - Use SWITCH for 3 or more branches.
-        - Use SWITCH also for 2 branches when both branches are explicit separate conditions
-          such as approved/rejected, high/low, email/sms, status/value based routing.
         """
-        # Auto-resolve if LLM passes something other than exact name
+        # 1. Resolve node_type against registry (fuzzy fallback if needed)
         resolved_type, reason = search_engine.resolve_node_type(node_type)
 
+        # 2. Infer role from registry — LLM has zero input here
+        inferred_role = _infer_output_type(resolved_type)
+
+        # 3. Build and append node
         node_id = str(uuid.uuid4())
         x_pos   = 250 + len(workflow.nodes) * 280
         y_pos   = 300
-
-        # Merge provided parameters with node defaults from search engine
-        node_defaults = {}
-        details = search_engine.get_node_details(resolved_type)
-        if details and details.properties:
-            # properties in node_types.json are the default parameter dict (not a list here)
-            pass
 
         new_node = WorkflowNode(
             id=node_id,
@@ -180,18 +263,19 @@ def create_add_node_tool(workflow: SimpleWorkflow, search_engine: NodeSearchEngi
             type_version=1,
             position=(x_pos, y_pos),
             parameters=parameters or {},
-            role=role,   # ← ADD THIS
+            role=inferred_role,   # ← registry-driven, not LLM-driven
         )
 
         workflow.add_node(new_node)
 
         note = ""
         if resolved_type != node_type:
-            note = f" (auto-resolved from '{node_type}' via {reason})"
+            note = f"\n   resolved from '{node_type}' via {reason}"
 
-        return (
-            f"✅ Added node '{name}'"
+        return (      
+            f"-->> Added node '{name}'"
             f"\n   type  = {resolved_type}{note}"
+            f"\n   role  = {inferred_role}  (auto-detected from catalog)"
             f"\n   id    = {node_id}"
             f"\n   total nodes = {len(workflow.nodes)}"
         )
