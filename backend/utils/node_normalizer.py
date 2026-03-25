@@ -167,7 +167,12 @@ def normalize_node(node: Dict[str, Any]) -> Dict[str, Any]:
         "icon":         node.get("icon", ""),
         "category_id":  node.get("category_id"),
         "category_name": node.get("category_name", ""),
-        "properties":   properties,            # configurator/update_parameters uses this
+        "properties":   properties,   # configurator/update_parameters uses this
+        # Preserve raw field arrays so workflow.py can read them for SWITCH/IF skeletons and operation inference
+        "actions":      node.get("actions") or [],
+        "triggers":     node.get("triggers") or [],
+        "conditional":  node.get("conditional") or [],
+
         "codex": {
             "alias": aliases,
         },
