@@ -8,12 +8,14 @@ import os
 
 # ── Models jo tool calling support karte hain ──────────────────
 TOOL_CAPABLE_MODELS = {
+    "openai/gpt-oss-120b"
     "llama-3.3-70b-versatile",
     "llama3-groq-70b-8192-tool-use-preview",
     "llama3-groq-8b-8192-tool-use-preview",
     "llama-3.1-8b-instant",
     "llama3-70b-8192",
     "llama3-8b-8192",
+    
 }
 
 # ── Models jo SIRF single HumanMessage accept karte hain ───────
@@ -22,11 +24,11 @@ _INVALID_CHAT_MODELS = {
     "whisper-large-v3",
     "whisper-large-v3-turbo",
     "distil-whisper-large-v3-en",
-    "openai/gpt-oss-120b",   # text classification model — chat completions ke liye nahi
+    # "openai/gpt-oss-120b",   # text classification model — chat completions ke liye nahi
 }
 
-DEFAULT_TOOL_MODEL  = "llama-3.3-70b-versatile"
-DEFAULT_FAST_MODEL  = "llama-3.3-70b-versatile"
+DEFAULT_TOOL_MODEL  = "openai/gpt-oss-120b"
+DEFAULT_FAST_MODEL  = "openai/gpt-oss-120b"
 
 
 def _get_api_key() -> str:

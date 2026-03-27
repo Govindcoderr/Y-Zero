@@ -272,6 +272,7 @@ import json
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, ToolMessage
 from typing import List, Any, Dict
+from ..utils.config import Config
 
 
 def strip_json_comments(text: str) -> str:
@@ -388,7 +389,7 @@ User request: {user_input}"""
             HumanMessage(content=f"Build the workflow now: {user_input}"),
         ]
 
-        MAX_ITER = 12
+        MAX_ITER = Config.MAX_ITERATIONS
         done = False
 
         for iteration in range(MAX_ITER):
