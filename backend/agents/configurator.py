@@ -16,10 +16,26 @@ class ConfiguratorAgent:
         workflow = state["workflow_json"]
         
         # Identify nodes needing configuration
-        nodes_to_configure = [
-            node for node in workflow.nodes 
-            if not node.parameters or len(node.parameters) == 0
-        ]
+        def _needs_config(node) -> bool:
+            if not node.parameters:
+                return 
+            
+            node_type = (node.type or "").upper()
+            if node_type in ("IF", "SWITCH"):
+                conds = node.parameters.get("conditions", {})
+                values = conds.get("value", []) if isinstance(conds, dict) else conds
+                if not values:
+                    return True
+                # check if any condition row is still empty/None
+                return any(
+                    not row.get("value1") or not row.get("operator")
+                    for row in values
+                    if isinstance(row, dict)
+                )
+            return False
+
+        nodes_to_configure = [node for node in workflow.nodes if _needs_config(node)]
+
         
         if not nodes_to_configure:
             return {

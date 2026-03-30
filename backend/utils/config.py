@@ -38,7 +38,7 @@ class Config:
     LLM_MODEL_FAST = os.getenv("LLM_MODEL_FAST", "").strip()
     
     # Agent Configuration
-    MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "5"))
+    MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS"))
     MAX_BUILDER_ITERATIONS = 15
     MAX_CONFIGURATOR_ITERATIONS = 10
     

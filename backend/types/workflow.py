@@ -1359,25 +1359,38 @@ def _extract_defaults(node_type: str) -> Dict[str, Any]:
     # ── SWITCH: return a proper skeleton ─────────────────────────
     if normalized_type == "SWITCH":
         return {
-            "mode":           "rules",
-            "conditions":     [],      # LLM fills with actual conditions
-            "rename_output":  False,
-            "convert_types":  False,
+            "mode": {
+                "mode": "fixed",
+                "value": "rules"
+            },
+            "conditions": {
+                "mode": "fixed",
+                "value": [
+                    {
+                        "value1": None,
+                        "operator": None,
+                        "value2": None
+                    }
+                ]
+            },
+            "rename_output": False,
+            "convert_types": False
         }
 
     # ── IF: return a proper skeleton ──────────────────────────────
     if normalized_type == "IF":
         return {
             "conditions": {
-                "options": {
-                    "caseSensitive":  True,
-                    "leftValue":      "",
-                    "typeValidation": "strict",
-                },
-                "combinator": "and",
-                "conditions": [],      # LLM fills with actual conditions
+                "mode": "rules",
+                "value":[ 
+                    {
+                    "value1":  None,  # LLM fills this with actual condition value
+                    "operator": "exits",  # default operator, can be overridden by LLM
+                    "Value2":  None,  # LLM fills this with actual condition value
+                    "operation": "and"  # default combinator, can be overridden by LLM
+                    }
+                ],
             },
-            "options": {},
         }
 
     # ── All other nodes: scan fields for defaults ─────────────────
@@ -1425,6 +1438,10 @@ def _count_switch_outputs(parameters: Dict[str, Any]) -> int:
       3. fallback        → 2
     """
     mode = parameters.get("mode", "rules")
+    # conditions is now a dict with a "value" list
+    conditions = parameters.get("conditions", {})
+    if isinstance(conditions, dict):
+        conditions = conditions.get("value", [])
 
     if mode == "expression":
         return max(2, int(parameters.get("number_of_outputs", 2)))
