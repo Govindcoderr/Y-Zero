@@ -28,12 +28,12 @@ from backend.tools.connect_nodes import create_connect_nodes_tool
 from backend.tools.update_parameters import create_update_parameters_tool
 from backend.tools.validate_workflow import create_validate_workflow_tool
 from backend.tools.resolve_node_type import create_resolve_node_type_tool
-from backend.types.coordination import CoordinationLogEntry
+from backend.types.coordination import CoordinationLogEntry, create_builder_metadata
 from backend.types.workflow import SimpleWorkflow
 from datetime import datetime
 import json
 from backend.tracker.pipeline_tracker import emit, emit_done, StepStatus
-
+from backend.agents.responder import ResponderAgent 
 
 class WorkflowBuilderOrchestrator:
     """Main orchestrator for workflow building"""
@@ -51,6 +51,7 @@ class WorkflowBuilderOrchestrator:
         self.greeter = GreeterAgent(self.llm_fast)  
         self.supervisor = SupervisorAgent(self.llm_fast)
         self.discovery = DiscoveryAgent(self.llm_fast)
+        self.responder_agent = ResponderAgent(self.llm_fast)
 
         # Build graph (builder/configurator tools are recreated per request)
         self.graph = self._build_graph()
@@ -207,79 +208,106 @@ class WorkflowBuilderOrchestrator:
             "coordination_log": [log_entry],
         }
 
-    async def _builder_node(self, state: WorkflowState) -> Dict[str, Any]:
-        """Run builder agent using workflow-bound tools"""
-        print("🏗️  Builder agent building workflow...")
+    async def _builder_node(self, state):
+        """
+        Run builder agent — writes `output` to its coordination log entry
+        so the Responder can read a human-readable workflow summary.
+        """
+        print("Building workflow...")
         workflow = state["workflow_json"]
-
+    
+        if workflow.nodes:
+            return {
+                "coordination_log": [],
+                # no-op if already built
+            }
+    
         builder_tools, _ = self._create_request_tools(workflow)
         builder = BuilderAgent(self.llm, builder_tools, self.search_engine)
-
         result = await builder.build_workflow(state)
-
+    
+        # ── Build human-readable workflow description for Responder ──────────
+        node_chain = " → ".join(n.name for n in workflow.nodes)
+        connection_count = sum(
+            len(arr[0]) if arr else 0
+            for conns in workflow.connections.values()
+            for arr in conns.values()
+        )
+        builder_output = (
+            f"{len(workflow.nodes)} nodes created: {node_chain}\n"
+            f"{connection_count} connection(s) established."
+        )
+    
         log_entry = CoordinationLogEntry(
             phase="builder",
             status="completed",
             timestamp=datetime.now().timestamp(),
             summary=result["summary"],
-            metadata={"nodes_added": result["nodes_added"]},
+            output=builder_output,                         # ← NEW: Responder reads this
+            metadata=create_builder_metadata(
+                nodes_created=len(workflow.nodes),
+                connections_created=connection_count,
+                node_names=[n.name for n in workflow.nodes],
+            ),
         )
-
+    
         print(f"   → {result['nodes_added']} nodes in workflow")
         return {"coordination_log": [log_entry]}
 
-    async def _configurator_node(self, state: WorkflowState) -> Dict[str, Any]:
-        """Run configurator agent"""
-        print("⚙️  Configurator agent configuring nodes...")
+    async def _configurator_node(self, state):
+        """
+        Run configurator agent — writes `output` (setup instructions) to its
+        coordination log entry so the Responder includes them in its reply.
+        """
+        print("Configuring nodes...")
         workflow = state["workflow_json"]
-
+    
         _, configurator_tools = self._create_request_tools(workflow)
         configurator = ConfiguratorAgent(self.llm, configurator_tools)
-
         result = await configurator.configure_workflow(state)
-
+    
+        # The configurator summary IS the setup instructions text
+        configurator_output = result.get("summary", "")
+    
+        from backend.types.coordination import CoordinationLogEntry, create_configurator_metadata
+        from datetime import datetime
+    
         log_entry = CoordinationLogEntry(
             phase="configurator",
             status="completed",
             timestamp=datetime.now().timestamp(),
-            summary=result["summary"],
-            metadata={"nodes_configured": result["nodes_configured"]},
+            summary=f"{result['nodes_configured']} nodes configured",
+            output=configurator_output,                    # ← NEW: Responder reads this
+            metadata=create_configurator_metadata(
+                nodes_configured=result["nodes_configured"],
+                has_setup_instructions=bool(configurator_output),
+            ),
         )
-
+    
         print(f"   → {result['nodes_configured']} nodes configured")
         return {"coordination_log": [log_entry]}
+    
 
-    async def _responder_node(self, state: WorkflowState) -> Dict[str, Any]:
-        """Generate final response"""
-        workflow = state["workflow_json"]
 
-        node_lines = []
-        for node in workflow.nodes:
-            node_lines.append(f"  • {node.name} ({node.type})")
-            if node.name in workflow.connections:
-                for conn_type, conn_list in workflow.connections[node.name].items():
-                    for conn_array in conn_list:
-                        for conn in conn_array:
-                            node_lines.append(f"      → {conn.node}")
-
-        connection_count = sum(
-            len(conn_array[0]) if conn_array else 0
-            for connections in workflow.connections.values()
-            for conn_array in connections.values()
-        )
-
-        response = (
-            f"✅ Workflow '{workflow.name}' has been built successfully!\n\n"
-            f"📊 Summary:\n"
-            f"  - {len(workflow.nodes)} nodes added\n"
-            f"  - {connection_count} connections created\n\n"
-            f"🔗 Workflow structure:\n"
-            + ("\n".join(node_lines) if node_lines else "  (empty workflow)")
-            + "\n\nThe workflow is ready to use!"
-        )
-
-        print(f"✅ Responder: workflow complete with {len(workflow.nodes)} nodes")
-        return {"messages": [{"role": "assistant", "content": response}]}
+    async def _responder_node(self, state):
+        """
+        Generate final response using the dedicated ResponderAgent.
+    
+        The ResponderAgent:
+        - Reads the coordination log for builder/configurator outputs
+        - Reads workflow state for node count / structure
+        - Applies n8n-style communication rules (no emojis, concise, setup instructions)
+        - Returns a clean, user-facing string
+        """
+        from backend.agents.responder import ResponderAgent
+    
+        # Lazy init (or use self.responder_agent if pre-created in __init__)
+        responder = ResponderAgent(self.llm_fast)
+        response_text = await responder.generate_response(state)
+    
+        print(f"Responder: {response_text[:100]}...")
+        return {"messages": [{"role": "assistant", "content": response_text}]}
+    
 
     # -------------------------------------------------------------------------
     # Helpers
