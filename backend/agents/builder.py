@@ -347,50 +347,7 @@ class BuilderAgent:
 
         def fmt(lst):
             return ", ".join(n["name"] for n in lst)
-        
-        
-#         system_prompt = f"""You are a workflow builder. Build a complete workflow for the user's request.
-
-# AVAILABLE NODES
-#   Triggers    (start the workflow): {fmt(triggers)}
-#   Actions     (do something):       {fmt(actions)}
-#   Conditionals (branch the flow):   {fmt(conds)}
-
-# RULES — follow exactly:
-# 1. FIRST node MUST always be a Trigger — pick from the Triggers list above.
-
-#    TRIGGER SELECTION (strict, check in order):
-#    - Time/interval/schedule words → SCHEDULE TRIGGER (every hour, daily, at 9am, etc.)
-#    - Webhook/HTTP event words     → WEBHOOK
-#    - External service has its own trigger (e.g. TYPEFORM, GITHUB) → use that service trigger
-#    - No time, no event, one-time  → MANUAL
-
-# 2. add_node takes ONLY: node_type, name, parameters.
-#    Do NOT pass a 'role' field — it is set automatically by the system.
-
-# 3. node_type MUST be an exact name from the lists above.
-#    Call search_nodes first if unsure.
-
-# 4. connect_nodes_by_name for EVERY consecutive pair of nodes.
-
-# 5. validate_workflow ONCE at the end — stop after it passes.
-
-# 6. Parameters: pure JSON — no // comments, no trailing commas.
-
-# 7. Conditional selection:
-#    - IF   → exactly one boolean split (true/false, yes/no)
-#    - SWITCH → 1+ branches, OR 2 named conditions (approved/rejected, high/low)
-#    - Never use IF for non-boolean splits.
-#    - Always use SWITCH for 3+ branches.
-#    - For 2 branches, use IF only if it's a simple true/false split. If it's two distinct conditions, use SWITCH.
-
-# EXECUTION ORDER:
-#   Step 1 → add_node: TRIGGER first (mandatory)
-#   Step 2 → add_node: remaining nodes
-#   Step 3 → connect_nodes_by_name: every consecutive pair
-#   Step 4 → validate_workflow: once, then STOP
-
-# User request: {user_input}"""
+    
 
         base_prompt = get_builder_prompt()
         messages = [

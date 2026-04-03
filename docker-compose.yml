@@ -1,26 +1,16 @@
-# docker-compose.yml
-# Run Elasticsearch locally for development
-#
-# Usage:
-#   docker compose up -d          ← start ES in background
-#   docker compose down           ← stop
-#   docker compose logs -f es     ← view logs
-#
-# After starting, ES is available at: http://localhost:9200
-# Kibana (dashboard) at:             http://localhost:5601
-
 version: "3.9"
 
 services:
 
+  # ── Elasticsearch ──────────────────────────────────────────────
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
     container_name: yzero_elasticsearch
     environment:
-      - discovery.type=single-node          # single node, no cluster setup
-      - xpack.security.enabled=false        # disable auth for local dev
+      - discovery.type=single-node
+      - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m     # limit RAM to 512MB
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - bootstrap.memory_lock=true
     ulimits:
       memlock:
@@ -36,6 +26,7 @@ services:
       timeout: 5s
       retries: 10
 
+  # ── Kibana (optional dashboard) ────────────────────────────────
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.0
     container_name: yzero_kibana
@@ -46,6 +37,29 @@ services:
     depends_on:
       es:
         condition: service_healthy
+
+  # ── FastAPI Backend ────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yzero_backend
+    env_file: .env                          # reads GROQ_API_KEY and others from .env
+    environment:
+      - ELASTICSEARCH_URL=http://es:9200    # override so backend talks to es container
+      - ES_NODE_INDEX=yzero_nodes
+      - KIBANA_HOSTS=http://kibana:5601
+    ports:
+      - "8000:8000"
+    depends_on:
+      es:
+        condition: service_healthy          # wait until ES is ready before starting
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   esdata:
