@@ -59,6 +59,9 @@ with st.sidebar:
         "Receive a webhook and post a Slack message",
         "make a workflow for daily new update on telegram  top 10 news only ",
         "Daily news update via HTTP and send to phone",
+        """Build a workflow that receives application errors from Sentry. 
+           If the error severity is "critical", send an alert to Microsoft Teams and create a GitHub issue. 
+           Otherwise log the error into Google Sheets. """,
         
         
     ]:

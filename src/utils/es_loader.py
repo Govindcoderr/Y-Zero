@@ -39,7 +39,7 @@ def _sync_load() -> List[Dict[str, Any]]:
             es = Elasticsearch(es_url, request_timeout=10)
 
         if not es.ping():
-            print("❌ Elasticsearch ping failed — cannot load nodes")
+            print("❌ Elasticsearch ping failed —  server cannot load nodes")
             return []
 
         # Scroll se saare docs fetch karo (1000+ nodes ke liye bhi kaam karega)

@@ -177,9 +177,10 @@ import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 import httpx
-# from src.utils.node_loader import fetch_nodes_from_api
+from src.utils.node_loader import fetch_nodes_from_api
 # from src.utils.node_normalizer import load_and_normalize_nodes
 from src.utils.es_indexer import reindex_all
+from src.utils.es_loader import load_nodes_from_es
 
 load_dotenv()
 
@@ -207,56 +208,50 @@ orchestrator: Optional[WorkflowBuilderOrchestrator] = None
 async def lifespan(app: FastAPI):
     global orchestrator
 
-    # # Nodes load karo — API first, local file fallback
-    # nodes_api_url = os.getenv("NODES_API_URL", "").strip()
+    NODE_TYPES = []
 
-    # if nodes_api_url:
-    #     NODE_TYPES = await fetch_nodes_from_api(nodes_api_url)
-    #     if not NODE_TYPES:
-    #         print("⚠️  API returned 0 nodes — falling back to local file")
-    #         NODE_TYPES = load_and_normalize_nodes()
-    # else:
-    #     NODE_TYPES = load_and_normalize_nodes()
+    # ── STEP 1: API se load karo (PRIMARY SOURCE) ─────────────────
+    nodes_api_url = os.getenv("NODES_API_URL")
 
-    # if not NODE_TYPES:
-    #     print("⚠️  WARNING: No nodes loaded. Set NODES_API_URL in .env")
+    if nodes_api_url:
+        NODE_TYPES = await fetch_nodes_from_api(nodes_api_url)
+        print(f"♾️ API nodes: {len(NODE_TYPES)}")
 
-        # Naya — ES se nodes load karo
-        
-    from src.utils.es_loader import load_nodes_from_es
-    NODE_TYPES = await load_nodes_from_es()
+    # ── STEP 2: fallback to ES agar API fail ho ──────────────────
+    if not NODE_TYPES:
+        print("⚠️ API failed — loading from Elasticsearch")
+        NODE_TYPES = await load_nodes_from_es()
+        print(f"📦 ES nodes: {len(NODE_TYPES)}")
 
     if not NODE_TYPES:
-        raise RuntimeError(
-            "❌ No nodes loaded from Elasticsearch! "
-            "Make sure ES is running and index is populated."
-        )
+        raise RuntimeError("❌ No nodes available from API or Elasticsearch")
 
-    print(f"✅ {len(NODE_TYPES)} nodes loaded from Elasticsearch")
-
+    # ── STEP 3: Orchestrator init ────────────────────────────────
     try:
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
-            raise ValueError("GROQ_API_KEY not set in environment variables")
-        orchestrator = WorkflowBuilderOrchestrator(api_key=api_key, node_types=NODE_TYPES)
+            raise ValueError("GROQ_API_KEY not set")
+
+        orchestrator = WorkflowBuilderOrchestrator(
+            api_key=api_key,
+            node_types=NODE_TYPES
+        )
         print("✅ Orchestrator initialized successfully")
+
     except Exception as e:
-        print(f"❌ Failed to initialize orchestrator: {e}")
+        print(f"❌ Orchestrator init failed: {e}")
         raise
 
-    #3. ES reindex (runs after orchestrator so search_engine exists) ──
-    # This is async + idempotent — safe to run every startup
+    # ── STEP 4: ALWAYS sync ES from API (IMPORTANT FIX) ──────────
     try:
         await reindex_all(orchestrator.search_engine, NODE_TYPES)
     except Exception as e:
-        # ES failure must NOT crash the server
-        print(f"⚠️  ES reindex skipped: {e}")
- 
-    yield  # ← server runs here
-    
+        print(f"⚠️ ES reindex skipped: {e}")
+
+    yield
+
     orchestrator = None
     print("🔄 Orchestrator shutdown complete")
-
 
 app = FastAPI(
     title="Workflow Builder API",
