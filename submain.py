@@ -12,28 +12,28 @@ Key fixes applied:
 """
 
 from langgraph.graph import StateGraph, END
-from backend.agents.greeter import GreeterAgent
+from src.agents.greeter import GreeterAgent
 from llm_provider import get_llm, get_llm_no_tools
 from typing import Dict, Any, Optional
-from backend.state.workflow_state import WorkflowState, create_initial_state
-from backend.engines.node_search_engine import NodeSearchEngine
-from backend.agents.supervisor import SupervisorAgent
-from backend.agents.discovery import DiscoveryAgent
-from backend.agents.builder import BuilderAgent
-from backend.agents.configurator import ConfiguratorAgent
-from backend.tools.search_nodes import create_search_nodes_tool
-from backend.tools.get_node_details import create_get_node_details_tool
-from backend.tools.add_node import create_add_node_tool
-from backend.tools.connect_nodes import create_connect_nodes_tool
-from backend.tools.update_parameters import create_update_parameters_tool
-from backend.tools.validate_workflow import create_validate_workflow_tool
-from backend.tools.resolve_node_type import create_resolve_node_type_tool
-from backend.types.coordination import CoordinationLogEntry, create_builder_metadata
-from backend.types.workflow import SimpleWorkflow
+from src.state.workflow_state import WorkflowState, create_initial_state
+from src.engines.node_search_engine import NodeSearchEngine
+from src.agents.supervisor import SupervisorAgent
+from src.agents.discovery import DiscoveryAgent
+from src.agents.builder import BuilderAgent
+from src.agents.configurator import ConfiguratorAgent
+from src.tools.search_nodes import create_search_nodes_tool
+from src.tools.get_node_details import create_get_node_details_tool
+from src.tools.add_node import create_add_node_tool
+from src.tools.connect_nodes import create_connect_nodes_tool
+from src.tools.update_parameters import create_update_parameters_tool
+from src.tools.validate_workflow import create_validate_workflow_tool
+from src.tools.resolve_node_type import create_resolve_node_type_tool
+from src.types.coordination import CoordinationLogEntry, create_builder_metadata
+from src.types.workflow import SimpleWorkflow
 from datetime import datetime
 import json
-from backend.tracker.pipeline_tracker import emit, emit_done, StepStatus
-from backend.agents.responder import ResponderAgent 
+from src.tracker.pipeline_tracker import emit, emit_done, StepStatus
+from src.agents.responder import ResponderAgent 
 
 class WorkflowBuilderOrchestrator:
     """Main orchestrator for workflow building"""
@@ -269,7 +269,7 @@ class WorkflowBuilderOrchestrator:
         # The configurator summary IS the setup instructions text
         configurator_output = result.get("summary", "")
     
-        from backend.types.coordination import CoordinationLogEntry, create_configurator_metadata
+        from src.types.coordination import CoordinationLogEntry, create_configurator_metadata
         from datetime import datetime
     
         log_entry = CoordinationLogEntry(
@@ -299,7 +299,7 @@ class WorkflowBuilderOrchestrator:
         - Applies n8n-style communication rules (no emojis, concise, setup instructions)
         - Returns a clean, user-facing string
         """
-        from backend.agents.responder import ResponderAgent
+        from src.agents.responder import ResponderAgent
     
         # Lazy init (or use self.responder_agent if pre-created in __init__)
         responder = ResponderAgent(self.llm_fast)

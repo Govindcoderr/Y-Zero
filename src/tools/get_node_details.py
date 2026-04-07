@@ -1,7 +1,7 @@
 # tools/get_node_details.py
 from langchain_core.tools import tool
 from typing import Annotated
-from backend.tools.search_nodes import NodeSearchEngine
+from src.tools.search_nodes import NodeSearchEngine
 import json
 
 def create_get_node_details_tool(search_engine: NodeSearchEngine):

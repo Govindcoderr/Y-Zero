@@ -6,7 +6,7 @@ Called from main.py lifespan to populate / re-sync the Elasticsearch index.
 Also exposes a helper for the /admin/reindex endpoint (optional).
 
 Usage in main.py lifespan:
-    from backend.utils.es_indexer import reindex_all
+    from src.utils.es_indexer import reindex_all
 
     await reindex_all(search_engine, node_types)
 """
@@ -17,7 +17,7 @@ import asyncio
 from typing import TYPE_CHECKING, List, Dict, Any
 
 if TYPE_CHECKING:
-    from backend.engines.node_search_engine import NodeSearchEngine
+    from src.engines.node_search_engine import NodeSearchEngine
 
 
 async def reindex_all(
@@ -48,7 +48,7 @@ def _sync_reindex(
 ) -> None:
     """Synchronous bulk reindex — called inside executor."""
     from elasticsearch.helpers import bulk
-    from backend.engines.node_search_engine import ES_INDEX, _node_to_doc
+    from src.engines.node_search_engine import ES_INDEX, _node_to_doc
 
     es = search_engine._es
     if es is None:

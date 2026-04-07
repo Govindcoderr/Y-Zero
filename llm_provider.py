@@ -1,7 +1,7 @@
 # llm_provider.py — COMPLETE FILE REPLACE KARO
 
 from langchain_groq import ChatGroq
-from backend.utils.config import Config 
+from src.utils.config import Config 
 import os
 
 

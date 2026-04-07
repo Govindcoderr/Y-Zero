@@ -239,7 +239,7 @@
 
 # backend/engines/node_search_engine.py
 """
-NodeSearchEngine — Elasticsearch backend.
+NodeSearchEngine — Elasticsearch src.
 
 Drop-in replacement for the old sublimeSearch engine.
 Public interface is IDENTICAL — no other file needs to change.

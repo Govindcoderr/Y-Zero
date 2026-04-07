@@ -177,9 +177,9 @@ import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 import httpx
-# from backend.utils.node_loader import fetch_nodes_from_api
-# from backend.utils.node_normalizer import load_and_normalize_nodes
-from backend.utils.es_indexer import reindex_all
+# from src.utils.node_loader import fetch_nodes_from_api
+# from src.utils.node_normalizer import load_and_normalize_nodes
+from src.utils.es_indexer import reindex_all
 
 load_dotenv()
 
@@ -195,7 +195,7 @@ from submain import WorkflowBuilderOrchestrator
 #     NODE_TYPES = []
 
 # BAAD MEIN (naya code):
-# from backend.utils.node_normalizer import load_and_normalize_nodes
+# from src.utils.node_normalizer import load_and_normalize_nodes
 
 # NODE_TYPES = load_and_normalize_nodes()
 # print(f"✅ Loaded {len(NODE_TYPES)} node types")
@@ -223,7 +223,7 @@ async def lifespan(app: FastAPI):
 
         # Naya — ES se nodes load karo
         
-    from backend.utils.es_loader import load_nodes_from_es
+    from src.utils.es_loader import load_nodes_from_es
     NODE_TYPES = await load_nodes_from_es()
 
     if not NODE_TYPES:
@@ -478,7 +478,7 @@ async def build_workflow(request: WorkflowRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error building workflow: {str(e)}")
 
-# from backend.utils.Workflow_trans import transform_workflow
+# from src.utils.Workflow_trans import transform_workflow
 
 # @app.post("/workflow/publish")
 # def publish_workflow(data: dict):
@@ -530,7 +530,7 @@ async def es_status():
         }
  
     try:
-        from backend.engines.node_search_engine import ES_INDEX
+        from src.engines.node_search_engine import ES_INDEX
         stats = se._es.count(index=ES_INDEX)
         return {
             "es_available": True,

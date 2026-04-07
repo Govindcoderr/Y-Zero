@@ -15,9 +15,9 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage
 from typing import Dict, Any, List, Optional
 
-from backend.prompt.agents.responder_prompt import get_responder_prompt
-from backend.types.coordination import CoordinationLogEntry
-from backend.types.workflow import SimpleWorkflow
+from src.prompt.agents.responder_prompt import get_responder_prompt
+from src.types.coordination import CoordinationLogEntry
+from src.types.workflow import SimpleWorkflow
 
 
 # ── Coordination log helpers (mirrors n8n's coordination-log.ts) ──────────────

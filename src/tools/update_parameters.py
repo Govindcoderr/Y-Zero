@@ -2,10 +2,10 @@
 # from langchain_core.tools import tool
 # from typing import Annotated, List
 # # from langgraph.prebuilt import InjectedState
-# from backend.chains.parameter_updater import update_node_parameters
+# from src.chains.parameter_updater import update_node_parameters
 # from langchain_core.language_models import BaseChatModel
 
-# from backend.types.workflow import SimpleWorkflow
+# from src.types.workflow import SimpleWorkflow
 
 # def create_update_parameters_tool(llm: BaseChatModel, search_engine, workflow: SimpleWorkflow):
 #     @tool

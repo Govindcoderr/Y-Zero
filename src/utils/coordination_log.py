@@ -8,7 +8,7 @@ LLM call — it just reads the log to decide what runs next.
 """
 
 from typing import List, Optional, Literal
-from backend.types.coordination import CoordinationLogEntry, SubgraphPhase
+from src.types.coordination import CoordinationLogEntry, SubgraphPhase
 
 RoutingDecision = Literal["discovery", "builder", "configurator", "responder"]
 

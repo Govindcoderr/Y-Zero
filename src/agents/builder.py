@@ -272,7 +272,7 @@ import json
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, ToolMessage
 from typing import List, Any, Dict
-from backend.prompt.agents.builder_prompt import get_builder_prompt
+from src.prompt.agents.builder_prompt import get_builder_prompt
 from ..utils.config import Config
 
 

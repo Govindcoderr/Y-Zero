@@ -1,8 +1,8 @@
 # agents/discovery.py
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.language_models import BaseChatModel
-from backend.chains.categorization import categorize_prompt
-from backend.chains.intent_generation import generate_intent
+from src.chains.categorization import categorize_prompt
+from src.chains.intent_generation import generate_intent
 from typing import Dict, Any
 
 class DiscoveryAgent:
@@ -55,8 +55,8 @@ class DiscoveryAgent:
 # from typing import Dict, Any
 # from langchain_core.prompts import ChatPromptTemplate
 # from langchain_core.output_parsers import JsonOutputParser
-# from backend.types.categorization import WorkflowCategorization, WorkflowTechnique
-# from backend.chains.categorization import BestPractices
+# from src.types.categorization import WorkflowCategorization, WorkflowTechnique
+# from src.chains.categorization import BestPractices
 # import json
 # import re
 
