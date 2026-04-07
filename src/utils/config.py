@@ -34,7 +34,6 @@ class Config:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
     LLM_MODEL = os.getenv("LLM_MODEL", "").strip()
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.2"))
-
     LLM_MODEL_FAST = os.getenv("LLM_MODEL_FAST", "").strip()
     
     # Agent Configuration
@@ -52,10 +51,21 @@ class Config:
     # Validation
     REQUIRE_TRIGGER_NODE = True
     REQUIRE_CONNECTED_NODES = True
+
+    NODES_API_URL =os.getenv("NODES_API_URL")
+    
+    # ElasticSearch Configuration
+    ES_INDEX = os.getenv("ES_NODE_INDEX")
+    es_url  = os.getenv("ELASTICSEARCH_URL", "http://localhost:9200")
+    es_user = os.getenv("ELASTICSEARCH_USER", "")
+    es_pass = os.getenv("ELASTICSEARCH_PASSWORD", "")
     
     # 
     _ICON_BASE_URL =os.getenv("ICON_BASE_URL", "")
 
+    #
+    jsonl_file =os.getenv("NODES_JSONL_PATH")
+    json_file = os.getenv("NODES_JSON_PATH")
 
     @classmethod
     def validate(cls):

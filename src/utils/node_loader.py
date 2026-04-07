@@ -8,7 +8,7 @@ import httpx
 import os
 from typing import List, Dict, Any
 from .node_normalizer import normalize_nodes
-
+from .config import Config
 
 async def fetch_nodes_from_api(api_url: str = None) -> List[Dict[str, Any]]:
     """
@@ -22,8 +22,8 @@ async def fetch_nodes_from_api(api_url: str = None) -> List[Dict[str, Any]]:
         "details": [ {id, type, name, actions, triggers, ...}, ... ]
     }
     """
-    url = api_url or os.getenv("NODES_API_URL").strip()
-    
+    url = api_url or Config.NODES_API_URL
+
     if not url:
         print("⚠️  NODES_API_URL not set — falling back to local file")
         return []

@@ -181,6 +181,7 @@ from src.utils.node_loader import fetch_nodes_from_api
 # from src.utils.node_normalizer import load_and_normalize_nodes
 from src.utils.es_indexer import reindex_all
 from src.utils.es_loader import load_nodes_from_es
+from src.utils.config import Config
 
 load_dotenv()
 
@@ -211,7 +212,7 @@ async def lifespan(app: FastAPI):
     NODE_TYPES = []
 
     # ── STEP 1: API se load karo (PRIMARY SOURCE) ─────────────────
-    nodes_api_url = os.getenv("NODES_API_URL")
+    nodes_api_url = Config.NODES_API_URL
 
     if nodes_api_url:
         NODE_TYPES = await fetch_nodes_from_api(nodes_api_url)
@@ -228,7 +229,7 @@ async def lifespan(app: FastAPI):
 
     # ── STEP 3: Orchestrator init ────────────────────────────────
     try:
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = Config.GROQ_API_KEY
         if not api_key:
             raise ValueError("GROQ_API_KEY not set")
 

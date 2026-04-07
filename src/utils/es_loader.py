@@ -7,9 +7,10 @@ import json
 import base64
 from typing import List, Dict, Any
 from elasticsearch import Elasticsearch
+from .config import Config
 
 
-ES_INDEX = os.getenv("ES_NODE_INDEX", "yzero_nodes")
+ES_INDEX =Config.ES_INDEX
 
 
 async def load_nodes_from_es() -> List[Dict[str, Any]]:
@@ -24,9 +25,9 @@ async def load_nodes_from_es() -> List[Dict[str, Any]]:
 
 
 def _sync_load() -> List[Dict[str, Any]]:
-    es_url  = os.getenv("ELASTICSEARCH_URL", "http://localhost:9200")
-    es_user = os.getenv("ELASTICSEARCH_USER", "")
-    es_pass = os.getenv("ELASTICSEARCH_PASSWORD", "")
+    es_url  = Config.es_url
+    es_user = Config.es_user
+    es_pass = Config.es_pass
 
     try:
         if es_user and es_pass:

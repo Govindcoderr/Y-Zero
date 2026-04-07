@@ -12,7 +12,8 @@ Zero hardcoding — all inference is keyword-based and data-driven.
 
 import json
 import os
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional 
+from .config import Config
 
 
 # ---------------------------------------------------------------------------
@@ -209,8 +210,8 @@ def load_and_normalize_nodes(
     all_nodes: List[Dict[str, Any]] = []
 
     # Resolve paths
-    jsonl_file = jsonl_path or os.getenv("NODES_JSONL_PATH")
-    json_file = json_path or os.getenv("NODES_JSON_PATH")
+    jsonl_file = jsonl_path or Config.json_file
+    json_file = json_path or Config.jsonl_file
 
     # Auto-detect if nothing specified
     if not jsonl_file and not json_file:
