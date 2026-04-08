@@ -266,6 +266,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from elasticsearch import Elasticsearch, NotFoundError, ConnectionError as ESConnectionError
@@ -620,6 +621,7 @@ class NodeSearchEngine:
         Both are combined with should so either can match.
         """
         try:
+            t_start = time.perf_counter()
             body = {
                 "size": limit,
                 "query": {
@@ -662,6 +664,11 @@ class NodeSearchEngine:
             }
 
             resp = self._es.search(index=ES_INDEX, body=body)
+            
+            t_end = time.perf_counter()
+            elapsed_ms = (t_end - t_start) * 1000
+            print(f"⏱️ ES search '{query}' → {elapsed_ms:.1f}ms | hits: {len(resp['hits']['hits'])}")
+
             hits = resp["hits"]["hits"]
 
             results = []
