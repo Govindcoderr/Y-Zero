@@ -20,6 +20,7 @@ from src.engines.node_search_engine import NodeSearchEngine
 from src.agents.supervisor import SupervisorAgent
 from src.agents.discovery import DiscoveryAgent
 from src.agents.builder import BuilderAgent
+from src.agents.modify_builder import ModifyWorkflowAgent
 from src.agents.configurator import ConfiguratorAgent
 from src.tools.search_nodes import create_search_nodes_tool
 from src.tools.get_node_details import create_get_node_details_tool
@@ -28,6 +29,7 @@ from src.tools.connect_nodes import create_connect_nodes_tool
 from src.tools.update_parameters import create_update_parameters_tool
 from src.tools.validate_workflow import create_validate_workflow_tool
 from src.tools.resolve_node_type import create_resolve_node_type_tool
+from src.tools.remove_node import create_remove_node_tool
 from src.types.coordination import CoordinationLogEntry, create_builder_metadata
 from src.types.workflow import SimpleWorkflow
 from datetime import datetime
@@ -74,6 +76,8 @@ class WorkflowBuilderOrchestrator:
         builder_tools = [
             create_search_nodes_tool(self.search_engine),        # search to find exact node names
             create_add_node_tool(workflow, self.search_engine),  # auto-resolves unknown types
+            create_update_parameters_tool(workflow),
+            create_remove_node_tool(workflow),
             connect_by_name,   # primary - LLM uses node names
             connect_by_id,     # fallback - LLM uses UUIDs from add_node response
             validate_tool,     # call ONCE at the end
@@ -92,6 +96,37 @@ class WorkflowBuilderOrchestrator:
 
         return builder_tools, configurator_tools
 
+    def _create_builder_tools(self, workflow: SimpleWorkflow):
+        connect_by_name, connect_by_id = create_connect_nodes_tool(workflow)
+        validate_tool = create_validate_workflow_tool(workflow)
+        return [
+            create_search_nodes_tool(self.search_engine),
+            create_add_node_tool(workflow, self.search_engine),
+            connect_by_name,
+            connect_by_id,
+            validate_tool,
+        ]
+
+    def _create_modify_tools(self, workflow: SimpleWorkflow):
+        connect_by_name, connect_by_id = create_connect_nodes_tool(workflow)
+        validate_tool = create_validate_workflow_tool(workflow)
+        return [
+            create_search_nodes_tool(self.search_engine),
+            create_add_node_tool(workflow, self.search_engine),
+            create_update_parameters_tool(workflow),
+            create_remove_node_tool(workflow),
+            connect_by_name,
+            connect_by_id,
+            validate_tool,
+        ]
+
+    def _create_configurator_tools(self, workflow: SimpleWorkflow):
+        validate_tool = create_validate_workflow_tool(workflow)
+        return [
+            create_update_parameters_tool(workflow),
+            validate_tool,
+        ]
+
     def _build_graph(self):
         """Build the LangGraph state graph"""
 
@@ -101,6 +136,7 @@ class WorkflowBuilderOrchestrator:
         graph.add_node("supervisor", self._supervisor_node)
         graph.add_node("discovery", self._discovery_node)
         graph.add_node("builder", self._builder_node)
+        graph.add_node("modify_builder", self._modify_builder_node)
         graph.add_node("configurator", self._configurator_node)
         graph.add_node("responder", self._responder_node)
 
@@ -125,6 +161,7 @@ class WorkflowBuilderOrchestrator:
             {
                 "discovery": "discovery",
                 "builder": "builder",
+                "modify_builder": "modify_builder",
                 "configurator": "configurator",
                 "responder": "responder",
             },
@@ -133,6 +170,7 @@ class WorkflowBuilderOrchestrator:
         # After each phase, return to supervisor for re-evaluation
         graph.add_edge("discovery", "supervisor")
         graph.add_edge("builder", "supervisor")
+        graph.add_edge("modify_builder", "supervisor")
         graph.add_edge("configurator", "supervisor")
         graph.add_edge("responder", END)
 
@@ -153,7 +191,7 @@ class WorkflowBuilderOrchestrator:
         user_message = self._extract_last_user_message(state)
         print(f"🤝 Greeter agent checking: {user_message[:60]}...")
 
-        result = await self.greeter.handle(user_message)
+        result = await self.greeter.handle(user_message, current_workflow=state.get("workflow_json"))
         intent = result["intent"]
         should_proceed = result["should_proceed"]
 
@@ -215,14 +253,7 @@ class WorkflowBuilderOrchestrator:
         """
         print("Building workflow...")
         workflow = state["workflow_json"]
-    
-        if workflow.nodes:
-            return {
-                "coordination_log": [],
-                # no-op if already built
-            }
-    
-        builder_tools, _ = self._create_request_tools(workflow)
+        builder_tools = self._create_builder_tools(workflow)
         builder = BuilderAgent(self.llm, builder_tools, self.search_engine)
         result = await builder.build_workflow(state)
     
@@ -254,6 +285,46 @@ class WorkflowBuilderOrchestrator:
         print(f"   → {result['nodes_added']} nodes in workflow")
         return {"coordination_log": [log_entry]}
 
+    async def _modify_builder_node(self, state):
+        """
+        Run modify agent with dedicated modify tools for an existing workflow.
+        """
+        print("Modifying workflow...")
+        workflow = state["workflow_json"]
+        before_node_names = [n.name for n in workflow.nodes]
+
+        modify_tools = self._create_modify_tools(workflow)
+        modifier = ModifyWorkflowAgent(self.llm, modify_tools, self.search_engine)
+        result = await modifier.build_or_modify_workflow(state)
+
+        node_chain = " â†’ ".join(n.name for n in workflow.nodes)
+        connection_count = sum(
+            len(arr[0]) if arr else 0
+            for conns in workflow.connections.values()
+            for arr in conns.values()
+        )
+        modify_output = (
+            f"Workflow updated. Previous nodes: {', '.join(before_node_names) if before_node_names else 'none'}\n"
+            f"Current nodes: {node_chain}\n"
+            f"{connection_count} connection(s) established."
+        )
+
+        log_entry = CoordinationLogEntry(
+            phase="modify_builder",
+            status="completed",
+            timestamp=datetime.now().timestamp(),
+            summary=result["summary"],
+            output=modify_output,
+            metadata=create_builder_metadata(
+                nodes_created=len(workflow.nodes),
+                connections_created=connection_count,
+                node_names=[n.name for n in workflow.nodes],
+            ),
+        )
+
+        print(f"   â†’ {result['nodes_added']} nodes in workflow after modification")
+        return {"coordination_log": [log_entry]}
+
     async def _configurator_node(self, state):
         """
         Run configurator agent — writes `output` (setup instructions) to its
@@ -262,7 +333,7 @@ class WorkflowBuilderOrchestrator:
         print("Configuring nodes...")
         workflow = state["workflow_json"]
     
-        _, configurator_tools = self._create_request_tools(workflow)
+        configurator_tools = self._create_configurator_tools(workflow)
         configurator = ConfiguratorAgent(self.llm, configurator_tools)
         result = await configurator.configure_workflow(state)
     
@@ -337,7 +408,10 @@ class WorkflowBuilderOrchestrator:
         return ""
 
     async def process_message(
-        self, user_message: str, state: Optional[WorkflowState] = None
+        self,
+        user_message: str,
+        state: Optional[WorkflowState] = None,
+        current_workflow: Optional[Dict[str, Any]] = None
     ) -> WorkflowState:
         """
         Process a user message and build a workflow.
@@ -350,7 +424,12 @@ class WorkflowBuilderOrchestrator:
             Final WorkflowState after graph execution
         """
         if state is None:
-            state = create_initial_state()
+            initial_workflow = None
+            if current_workflow:
+                intent = await self.greeter.classify_intent(user_message)
+                if intent not in {"GREETING", "GUIDE_REQUEST", "OUT_OF_SCOPE"}:
+                    initial_workflow = SimpleWorkflow.from_output_dict(current_workflow)
+            state = create_initial_state(existing_workflow=initial_workflow)
 
         # Append user message to history
         state["messages"].append({"role": "user", "content": user_message})

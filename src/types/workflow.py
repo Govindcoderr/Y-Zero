@@ -1939,3 +1939,97 @@ class SimpleWorkflow:
                 for node_name, conns in self.connections.items()
             },
         }
+
+    @classmethod
+    def from_output_dict(cls, data: Optional[Dict[str, Any]]) -> "SimpleWorkflow":
+        if not isinstance(data, dict):
+            return cls(name="New Workflow")
+
+        raw_nodes = data.get("nodes") or []
+        raw_edges = data.get("edges") or []
+
+        nodes: List[WorkflowNode] = []
+        id_to_name: Dict[str, str] = {}
+        id_to_type: Dict[str, str] = {}
+
+        for raw_node in raw_nodes:
+            if not isinstance(raw_node, dict):
+                continue
+
+            node_id = str(raw_node.get("id") or "")
+            node_type = str(raw_node.get("type") or "")
+            data_block = raw_node.get("data") or {}
+            label = (
+                data_block.get("label")
+                or raw_node.get("name")
+                or node_type
+                or f"Node {len(nodes) + 1}"
+            )
+            position = raw_node.get("position") or raw_node.get("computedPosition") or {}
+            x = int(position.get("x", 0) or 0)
+            y = int(position.get("y", 0) or 0)
+            parameters = raw_node.get("parameters")
+            if not isinstance(parameters, dict):
+                value_block = data_block.get("value")
+                parameters = value_block if isinstance(value_block, dict) else {}
+
+            node = WorkflowNode(
+                id=node_id,
+                name=str(label),
+                type=node_type,
+                type_version=int(raw_node.get("typeVersion", 1) or 1),
+                position=(x, y),
+                parameters=parameters,
+                role=raw_node.get("nodeTypeActions"),
+            )
+            nodes.append(node)
+            if node_id:
+                id_to_name[node_id] = node.name
+                id_to_type[node_id] = node.type
+
+        workflow = cls(name=str(data.get("name") or "Workflow"), nodes=nodes, connections={})
+
+        for raw_edge in raw_edges:
+            if not isinstance(raw_edge, dict):
+                continue
+
+            source_id = str(raw_edge.get("source") or "")
+            target_id = str(raw_edge.get("target") or "")
+            source_name = id_to_name.get(source_id)
+            target_name = id_to_name.get(target_id)
+            if not source_name or not target_name:
+                continue
+
+            source_handle = str(raw_edge.get("sourceHandle") or "out")
+            source_type = id_to_type.get(source_id, "")
+            connection_type, branch_index = cls._source_handle_to_connection(source_type, source_handle)
+
+            workflow.connections.setdefault(source_name, {})
+            workflow.connections[source_name].setdefault(connection_type, [])
+            while len(workflow.connections[source_name][connection_type]) <= branch_index:
+                workflow.connections[source_name][connection_type].append([])
+
+            workflow.connections[source_name][connection_type][branch_index].append(
+                WorkflowConnection(node=target_name, type=connection_type, index=0)
+            )
+
+        return workflow
+
+    @staticmethod
+    def _source_handle_to_connection(node_type: str, source_handle: str) -> Tuple[str, int]:
+        normalized_type = (node_type or "").strip().upper()
+        handle = (source_handle or "out").strip()
+
+        if normalized_type == "IF":
+            return ("main", 1) if handle == "false" else ("main", 0)
+
+        if normalized_type == "SWITCH":
+            try:
+                return "main", max(0, int(handle))
+            except ValueError:
+                return "main", 0
+
+        if handle in ("", "out", "main"):
+            return "main", 0
+
+        return handle, 0

@@ -277,6 +277,7 @@ app.add_middleware(
 class WorkflowRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    current_workflow: Optional[Dict[str, Any]] = None
 
 class HandleBoundItem(BaseModel):
     id: str
@@ -409,7 +410,10 @@ async def build_workflow(request: WorkflowRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
     try:
-        result = await orchestrator.process_message(request.message)
+        result = await orchestrator.process_message(
+            request.message,
+            current_workflow=request.current_workflow,
+        )
 
 
         # ── Check if greeter short-circuited the pipeline ──────────

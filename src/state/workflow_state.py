@@ -56,14 +56,14 @@ class WorkflowState(TypedDict):
     next_agent: str
 
 
-def create_initial_state() -> WorkflowState:
+def create_initial_state(existing_workflow: Optional[SimpleWorkflow] = None) -> WorkflowState:
     return {
         
         # Greeter defaults (NEW)
         "greeter_proceed": False,       # will be set by greeter node
         "greeter_intent": None,         # will be set by greeter node
 
-        "workflow_json": SimpleWorkflow(name="New Workflow"),
+        "workflow_json": existing_workflow or SimpleWorkflow(name="New Workflow"),
         "categorization": None,
         "best_practices": None,
         "node_configurations": {},

@@ -29,7 +29,17 @@ def check_api():
 
 def build_workflow(message: str):
     try:
-        r = requests.post(f"{API_BASE_URL}/workflow", json={"message": message}, timeout=360, stream=True)
+        payload = {"message": message}
+        if st.session_state.workflow_state:
+            payload["current_workflow"] = {
+                "id": st.session_state.workflow_state.get("id", 1),
+                "name": st.session_state.workflow_state.get("name"),
+                "nodes": st.session_state.workflow_state.get("nodes", []),
+                "edges": st.session_state.workflow_state.get("edges", []),
+                "viewport": st.session_state.workflow_state.get("viewport", {"x": 0, "y": 0, "zoom": 1}),
+                "publish": st.session_state.workflow_state.get("publish", 0),
+            }
+        r = requests.post(f"{API_BASE_URL}/workflow", json=payload, timeout=360, stream=True)
         r.raise_for_status()
         return r.json()
     except requests.exceptions.ConnectionError:
@@ -81,7 +91,7 @@ if st.session_state.history:
 user_input = st.text_area(
     "Describe your workflow:",
     placeholder="e.g. Every day at 8am fetch top news and send me an SMS",
-    height=90,
+    height=150,
 )
 
 if st.button(" Build Workflow", type="primary", use_container_width=False):

@@ -8,7 +8,7 @@ from typing import Literal, Dict, Any
 
 
 class SupervisorDecision(BaseModel):
-    next_agent: Literal["discovery", "builder", "configurator", "responder"] = Field(
+    next_agent: Literal["discovery", "builder", "modify_builder", "configurator", "responder"] = Field(
         description="Which agent should act next"
     )
     reasoning: str = Field(description="Why this agent should act", default="")
@@ -38,7 +38,10 @@ class SupervisorAgent:
         if not has_categorization or not has_best_practices:
             return "discovery"
 
-        if "builder" not in completed_phases:
+        if state.get("greeter_intent") == "WORKFLOW_MODIFY" and "modify_builder" not in completed_phases:
+            return "modify_builder"
+
+        if "builder" not in completed_phases and node_count == 0:
             return "builder"
 
         if "configurator" not in completed_phases:

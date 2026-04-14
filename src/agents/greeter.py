@@ -317,7 +317,7 @@ class GreeterAgent:
 
         lines = [f"📊 **Current Workflow** — {len(workflow.nodes)} node(s):"]
         for i, node in enumerate(workflow.nodes, 1):
-            lines.append(f"  {i}. **{node.name}** (`{node.type}` / {node.node_type})")
+            lines.append(f"  {i}. **{node.name}** (`{node.type}`)")
 
         # Edge summary
         edge_count = sum(

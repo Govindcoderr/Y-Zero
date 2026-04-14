@@ -37,6 +37,7 @@ from datetime import datetime
 SubgraphPhase = Literal[
     "discovery",
     "builder",
+    "modifier",
     "configurator",
     "state_management",
 ]
